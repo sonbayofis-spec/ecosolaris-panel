@@ -1,0 +1,21 @@
+name: Zamanlayıcıyı canlı tut
+
+on:
+  schedule:
+    - cron: "17 4 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  canli-tut:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Boş commit
+        run: |
+          git config user.name "ecosolaris-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit --allow-empty -m "Aylık canlı tutma"
+          git push
