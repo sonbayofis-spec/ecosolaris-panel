@@ -1,0 +1,436 @@
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon.svg"><meta name="apple-mobile-web-app-capable" content="yes"><style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style><title>Ecosolaris Rüzgar Paneli</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#10292F">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#EEF3F1; --panel:#FFFFFF; --fg:#10292F; --muted:#56706F; --line:#D5E0DD;
+  --accent:#12806E; --accent-soft:#D9EEE8; --m2:#7B4FB8; --m3:#2F6FB5; --low:#C27A1A; --bad:#B4412F; --good:#12806E;
+  --hero:#E3F1EC; --top:#10292F; --top-fg:#E6F2EF; --top-muted:#93B0AA; --band:#12806E;
+  --font-sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0A1715; --panel:#112420; --fg:#E2EFEB; --muted:#8CA8A2; --line:#203833;
+    --accent:#3FC3A8; --accent-soft:#12372F; --m2:#B79BEA; --m3:#7FB0F0; --low:#E0A24A; --bad:#E58470; --good:#3FC3A8;
+    --hero:#12302A; --top:#06100E; --top-fg:#E2EFEB; --top-muted:#7C9B94; --band:#3FC3A8; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0A1715; --panel:#112420; --fg:#E2EFEB; --muted:#8CA8A2; --line:#203833;
+  --accent:#3FC3A8; --accent-soft:#12372F; --m2:#B79BEA; --m3:#7FB0F0; --low:#E0A24A; --bad:#E58470; --good:#3FC3A8;
+  --hero:#12302A; --top:#06100E; --top-fg:#E2EFEB; --top-muted:#7C9B94; --band:#3FC3A8; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-sans);font-size:15px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--top);z-index:10}
+.wrap{max-width:1100px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.top{background:var(--top);color:var(--top-fg);padding-block:12px}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.brand{font-weight:600;letter-spacing:.01em}
+.brand small{font-family:var(--font-mono);font-weight:400;font-size:12px;color:var(--top-muted);margin-left:10px}
+.status{font-family:var(--font-mono);font-size:12px;color:var(--top-muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.status .dot{width:8px;height:8px;border-radius:50%;background:var(--top-muted);display:inline-block}
+.status.live .dot{background:#3FC3A8;box-shadow:0 0 0 3px rgba(63,195,168,.25)}
+.status b{color:var(--top-fg);font-weight:500}
+.status button{font:inherit;font-size:12px;color:var(--top-fg);background:transparent;border:1px solid var(--top-muted);border-radius:4px;padding:2px 8px;cursor:pointer}
+main{padding-block:18px 56px;display:flex;flex-direction:column;gap:16px}
+.hero{background:var(--hero);border-radius:10px;padding:20px 22px;display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;overflow:hidden}
+.hero h1{margin:0 0 8px;font-size:clamp(23px,4.4vw,33px);line-height:1.15;font-weight:600;letter-spacing:-.01em;text-wrap:balance}
+.hero p{margin:0;color:var(--muted);max-width:62ch}
+.hero p b{color:var(--fg);font-weight:600}
+.chips{margin-top:12px;display:flex;flex-wrap:wrap;gap:6px 8px}
+.chip{font-family:var(--font-mono);font-size:12px;padding:3px 9px;border-radius:999px;background:var(--panel);border:1px solid var(--line);color:var(--muted)}
+.chip.good{color:var(--good);border-color:var(--good)}
+.chip.mid{color:var(--low);border-color:var(--low)}
+.chip.bad{color:var(--bad);border-color:var(--bad)}
+.turb{width:110px;height:130px;flex:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.rotor{transform-origin:60px 40px;animation:spin var(--spin,6s) linear infinite}
+@media (prefers-reduced-motion:reduce){.rotor{animation:none}}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;min-width:0}
+.tile .l{font-size:12.5px;color:var(--muted)}
+.tile .v{font-family:var(--font-mono);font-size:29px;font-weight:500;letter-spacing:-.02em;margin:4px 0 2px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .v small{font-size:13px;color:var(--muted);font-weight:400;margin-left:4px;letter-spacing:0}
+.tile .s{font-size:12.5px;color:var(--muted)}
+.tile input{font:inherit;font-family:var(--font-mono);font-size:12.5px;width:64px;padding:1px 4px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--fg)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;min-width:0}
+.panel h2{margin:0;font-size:16px;font-weight:600}
+.panel .d{margin:2px 0 10px;color:var(--muted);font-size:13.5px}
+.head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.tabs{display:flex;gap:6px}
+.tabs button{font:inherit;font-size:13px;padding:5px 12px;border-radius:5px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer}
+.tabs button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--panel)}
+button:focus-visible,input:focus-visible,tr:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+svg{display:block;width:100%;height:auto;overflow:visible;touch-action:pan-y}
+svg text{font-family:var(--font-mono);font-size:11px;fill:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:8px;font-size:12.5px;color:var(--muted)}
+.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.legend i.band{height:10px;opacity:.25}
+.grid2{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px}
+@media (max-width:760px){.grid2{grid-template-columns:1fr}}
+.three{display:grid;gap:10px}
+.info{background:var(--bg);border-radius:8px;padding:12px 14px}
+.info b{display:block;font-size:14px;margin-bottom:2px}
+.info span{font-size:13.5px;color:var(--muted)}
+.rosebox{display:flex;flex-direction:column;align-items:center;gap:6px}
+.rosebox svg{max-width:240px}
+.days{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:10px}
+.day{font:inherit;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px;cursor:pointer;color:var(--fg);min-width:0}
+.day[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.day .n{font-size:13px;font-weight:600}
+.day .w{font-family:var(--font-mono);font-size:21px;margin:4px 0 0;font-weight:500}
+.day .w small{font-size:12px;color:var(--muted);font-weight:400}
+.day .m{font-size:12px;color:var(--muted);font-family:var(--font-mono)}
+.day .b{position:relative;height:6px;background:var(--line);border-radius:3px;margin-top:8px}
+.day .b i{position:absolute;left:0;top:0;bottom:0;background:var(--accent);border-radius:3px}
+.day .b u{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--fg);opacity:.55}
+.week{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0 0 12px;font-size:13.5px;color:var(--muted)}
+.week b{color:var(--fg);font-family:var(--font-mono);font-weight:500}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:13.5px}
+th,td{text-align:right;padding:7px 9px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{font-size:12px;font-weight:500;color:var(--muted);position:sticky;top:0;background:var(--panel)}
+td{font-family:var(--font-mono)}
+tbody tr{cursor:pointer}
+tbody tr:hover td{background:var(--bg)}
+tr.sel td{background:var(--accent-soft)!important}
+td.e{color:var(--accent)} td.i{color:var(--m2)} td.g{color:var(--m3)}
+.foot{font-size:12.5px;color:var(--muted);display:flex;flex-direction:column;gap:6px;max-width:90ch}
+.foot b{color:var(--fg);font-weight:500}
+@media (max-width:560px){.hero{grid-template-columns:1fr}.turb{display:none}}
+</style>
+
+</head><body><div class="top"><div class="wrap">
+  <div class="brand">Ecosolaris Rüzgar Paneli<small>Vestas V90-2.0 MW · 105 m · Pojăreni</small></div>
+  <div class="status" id="status"><span class="dot"></span><span id="st-text">Yükleniyor…</span></div>
+</div></div>
+
+<main class="wrap">
+  <section class="hero">
+    <div>
+      <h1 id="h-title">—</h1>
+      <p id="h-text"></p>
+      <div class="chips" id="h-chips"></div>
+    </div>
+    <svg class="turb" viewBox="0 0 120 140" aria-hidden="true">
+      <path d="M57 44 L63 44 L66 132 L54 132 Z" fill="var(--muted)" opacity=".55"/>
+      <g class="rotor" id="rotor">
+        <path d="M60 40 L57 36 L60 -2 L63 36 Z" fill="var(--accent)"/>
+        <path d="M60 40 L57 36 L60 -2 L63 36 Z" fill="var(--accent)" transform="rotate(120 60 40)"/>
+        <path d="M60 40 L57 36 L60 -2 L63 36 Z" fill="var(--accent)" transform="rotate(240 60 40)"/>
+      </g>
+      <circle cx="60" cy="40" r="5" fill="var(--fg)"/>
+    </svg>
+  </section>
+
+  <section class="tiles" id="tiles"></section>
+
+  <section class="panel">
+    <div class="head">
+      <div><h2>Rüzgarın önümüzdeki seyri</h2><p class="d">Üstte 105 m rüzgar hızı, altta türbinin vereceği güç. Grafiğe dokunarak saat seçin.</p></div>
+      <div class="tabs" id="tabs"></div>
+    </div>
+    <div id="chart"></div>
+    <div class="legend">
+      <span><i style="background:var(--accent)"></i>ECMWF (ana tahmin)</span>
+      <span><i style="background:var(--m2)"></i>ICON</span>
+      <span><i style="background:var(--m3)"></i>GFS</span>
+      <span><i class="band" style="background:var(--band)"></i>Üç modelin aralığı</span>
+      <span><i style="background:var(--low)"></i>Başlama 4 m/s</span>
+    </div>
+  </section>
+
+  <section class="grid2">
+    <div class="panel">
+      <h2>Önümüzdeki 24 saat</h2>
+      <p class="d">ECMWF tahmininden çıkan kısa özet.</p>
+      <div class="three" id="three"></div>
+    </div>
+    <div class="panel">
+      <h2 id="r-title">Rüzgar yönü</h2>
+      <p class="d" id="r-sub">Seçili günde rüzgarın hangi yönden kaç saat estiği.</p>
+      <div class="rosebox" id="rose"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>7 günlük üretim</h2>
+    <p class="d">Çubuk, günün üretimini Ekim normaline göre gösterir; ince çizgi normal günü işaretler. Bir güne dokunun.</p>
+    <div class="week" id="week"></div>
+    <div class="days" id="days"></div>
+  </section>
+
+  <section class="panel">
+    <h2 id="t-title">Saat saat</h2>
+    <p class="d">Bir satıra dokunarak o saati seçin. Güç ve gelir ECMWF tahminine göredir.</p>
+    <div class="tw"><table><thead><tr><th>Saat</th><th>ECMWF</th><th>ICON</th><th>GFS</th><th>Rotor eşdeğeri</th><th>Güç (kW)</th><th>Gelir (lei)</th><th>Yön</th></tr></thead><tbody id="rows"></tbody></table></div>
+  </section>
+
+  <div class="foot" id="foot">
+    <span><b>Veri.</b> Open-Meteo üzerinden ECMWF IFS 0,25°, DWD ICON ve NOAA GFS. Model noktası 47,00 K 28,75 D; saha 46,893 K 28,695 D.</span>
+    <span><b>Saha düzeltmesi.</b> Modeller sahayı ~12 km'lik ızgarayla görür ve Pojăreni sırtındaki hızlanmayı kaçırır. Rüzgar hızları ×1,14 ile düzeltilir. Bu katsayı, 10 yıllık ERA5 verisinden çıkan yıllık üretimi 4,65 GWh'ye (Global Wind Atlas, ERA5 ve Tempelfelde'deki gerçek üretimle yapılan kontrolün ortası) eşitler.</span>
+    <span><b>Hesap.</b> 10–180 m rüzgar profilinden rotorun 60–150 m aralığındaki enerji eşdeğeri hız bulunur, hava yoğunluğu 1,198 kg/m³ için düzeltilir ve V90-2.0 MW güç eğrisinden (OEDB) güce çevrilir. MWh toplamlarında %92 net verim uygulanır. Ekim normali 2015–2024 ERA5 ortalamasıdır.</span>
+    <span>Bu bir hava tahminidir, sayaç verisi değildir. Modeller birbirinden ayrıldığında aralık genişler; o günler için tahmine daha az güvenin.</span>
+  </div>
+</main>
+
+<script>
+(function(){
+  var EMBED={"start":"2026-10-22T00:00","fetched":"2026-10-22T00:10","e":{"10m":[3.16,3.19,3.2,3.41,3.67,3.89,4.03,4.13,4.19,4.38,4.85,5.51,5.82,5.47,4.74,4.26,4.33,4.61,4.75,4.74,4.6,4.46,4.39,4.34,4.08,3.64,3.05,2.41,1.97,1.82,1.53,0.92,1.21,1.98,2.52,2.95,3.31,3.67,3.94,4.21,4.29,4.2,4.11,4.03,3.8,3.76,3.84,3.88,3.77,3.36,2.82,2.46,2.56,2.86,2.98,2.76,2.4,1.92,1.34,0.9,0.85,1.12,1.61,1.75,1.32,0.63,0.3,0.36,1.03,1.49,1.2,1.06,1.3,1.34,1.2,1.17,1.17,1.12,1.2,1.5,1.82,2.16,2.34,2.59,2.66,2.56,2.41,2.12,1.7,1.08,0.89,1.22,1.91,2.33,2.2,1.97,1.71,1.55,1.41,1.32,1.17,1.14,1.2,1.28,1.35,1.35,1.36,1.43,1.3,0.89,0.28,0.32,0.7,1,1.32,1.58,1.88,2.2,2.52,2.86,3.14,3.38,3.58,3.71,3.62,3.45,3.23,3.09,2.87,2.68,2.42,2.79,3.44,3.78,3.97,4.08,4.12,3.98,3.89,3.72,3.58,3.42,3.26,3.13,2.98,2.84,2.62,2.51,2.4,2.3,2.2,2.1,2.1,2.1,2.3,2.6,2.9,3.2,3.51,3.71,3.71,3.51,3.32,3.13,2.94,2.73,2.61,2.5],"80m":[5.88,5.86,6.03,6.28,6.5,6.76,6.93,7.06,7.21,7.44,7.82,8.28,8.46,8.08,7.46,7.12,7.31,7.72,7.99,7.98,7.89,7.75,7.57,7.35,7,6.3,5.38,4.58,4.1,3.81,3.4,2.22,1.8,2.9,3.73,4.32,4.75,5.28,5.67,6.1,6.63,7.04,7.31,7.16,6.81,6.62,6.62,6.74,6.5,5.71,4.67,4.07,4.23,4.87,5.17,4.81,4.24,3.45,2.19,0.92,1.11,1.68,2.16,2.39,2.24,1.97,1.57,0.76,2.44,3.53,3,2.81,3.48,3.36,2.92,2.95,3.1,3.14,3.32,3.55,3.7,3.79,3.71,3.58,3.49,3.32,3.04,2.89,2.7,2.57,2.73,3.61,4.76,5.52,5.36,4.84,4.44,4.21,3.93,3.72,3.48,3.28,3.24,3.18,3.03,2.83,2.48,2.01,1.63,1.09,0.5,0.29,1.17,2.18,3.05,3.61,4.03,4.54,5.16,5.89,6.47,6.89,7.2,7.31,7.18,6.86,6.58,6.69,6.93,6.67,5.75,4.84,4.82,4.99,5.33,5.6,5.9,6.15,6.46,6.67,6.85,6.93,6.76,6.58,6.28,5.99,5.61,5.36,5.12,4.78,4.57,4.35,4.11,4,4.05,4.32,4.5,4.69,4.97,5.17,5.3,5.45,5.63,5.83,5.96,5.99,5.83,5.7],"100m":[6.03,6.01,6.19,6.44,6.66,6.94,7.11,7.25,7.39,7.63,8.03,8.5,8.68,8.29,7.66,7.3,7.5,7.92,8.2,8.18,8.09,7.95,7.76,7.55,7.19,6.47,5.52,4.7,4.21,3.91,3.49,2.28,1.84,2.97,3.83,4.43,4.88,5.41,5.81,6.26,6.8,7.22,7.5,7.34,6.98,6.8,6.8,6.91,6.67,5.86,4.79,4.18,4.34,4.99,5.3,4.94,4.35,3.54,2.25,0.94,1.14,1.73,2.22,2.45,2.3,2.02,1.61,0.78,2.51,3.62,3.08,2.88,3.57,3.45,3,3.02,3.18,3.22,3.4,3.64,3.79,3.89,3.81,3.67,3.58,3.41,3.11,2.97,2.77,2.64,2.8,3.7,4.88,5.66,5.5,4.96,4.55,4.32,4.03,3.82,3.57,3.36,3.33,3.26,3.11,2.9,2.55,2.06,1.68,1.12,0.51,0.3,1.2,2.24,3.13,3.7,4.13,4.66,5.29,6.04,6.64,7.07,7.38,7.5,7.37,7.03,6.75,6.87,7.11,6.84,5.9,4.96,4.94,5.12,5.46,5.75,6.05,6.31,6.62,6.85,7.02,7.11,6.93,6.75,6.45,6.15,5.76,5.5,5.25,4.9,4.68,4.46,4.22,4.1,4.16,4.43,4.62,4.81,5.1,5.31,5.43,5.59,5.77,5.98,6.11,6.15,5.98,5.85],"120m":[6.16,6.14,6.31,6.57,6.8,7.08,7.26,7.4,7.55,7.79,8.19,8.68,8.86,8.46,7.81,7.45,7.66,8.08,8.37,8.35,8.26,8.12,7.92,7.7,7.34,6.6,5.64,4.8,4.29,3.99,3.57,2.33,1.88,3.03,3.91,4.52,4.98,5.52,5.93,6.39,6.94,7.37,7.66,7.49,7.13,6.94,6.94,7.05,6.81,5.98,4.89,4.26,4.43,5.1,5.41,5.04,4.44,3.62,2.29,0.96,1.16,1.76,2.27,2.5,2.35,2.07,1.65,0.8,2.56,3.7,3.14,2.94,3.64,3.52,3.06,3.09,3.24,3.29,3.47,3.72,3.87,3.97,3.89,3.75,3.65,3.48,3.18,3.03,2.82,2.69,2.86,3.78,4.98,5.78,5.61,5.07,4.65,4.41,4.11,3.9,3.64,3.43,3.4,3.33,3.18,2.96,2.6,2.1,1.71,1.14,0.52,0.31,1.23,2.28,3.19,3.78,4.22,4.75,5.4,6.17,6.77,7.22,7.54,7.66,7.52,7.18,6.89,7.01,7.25,6.99,6.02,5.07,5.04,5.23,5.58,5.86,6.18,6.44,6.76,6.99,7.17,7.26,7.08,6.89,6.58,6.27,5.88,5.62,5.36,5.01,4.78,4.56,4.31,4.18,4.25,4.52,4.71,4.91,5.21,5.42,5.55,5.71,5.89,6.1,6.24,6.27,6.1,5.97],"dir":[130,136,146,152,154,155,154,152,150,148,149,152,153,150,147,144,143,143,142,141,140,140,142,145,148,148,148,151,162,177,193,218,283,318,327,332,334,335,333,333,336,338,339,336,331,327,327,329,330,333,337,339,334,327,324,328,337,344,339,302,218,190,172,168,180,200,210,140,85,84,103,146,169,163,143,124,118,116,114,111,108,108,113,119,126,130,132,135,139,143,145,142,137,138,143,152,161,167,173,174,169,157,147,140,135,134,138,151,163,170,169,360,5,10,7,360,353,345,338,331,329,331,335,339,342,345,348,347,346,348,359,19,36,39,35,31,31,29,29,29,28,28,27,25,24,22,20,19,18,17,16,16,14,13,10,6,5,4,2,3,6,10,14,18,21,22,21,17]},"i":{"10m":[3.64,3.5,3.22,3.2,3.52,3.44,3.52,3.78,4,4.8,4.16,4.18,4.69,5.11,4.84,4.68,4.39,4.36,4.06,3.98,3.78,3.76,3.62,3.75,3.76,3.76,2.89,2.21,1.22,0.85,0.86,0.64,0.72,0.91,3.66,3.42,3.2,3.52,3.57,3.59,3.41,3.38,3.21,3.77,3.93,3.42,3.1,3.13,3.03,2.92,2.33,1.91,1.63,1.71,1.3,1.2,1.1,0.91,1.08,0.89,1.12,1.22,1.1,1.41,1.82,1.77,1.17,1.41,1.82,1.84,1.84,1.58,1.43,1.32,1.22,1.22,1.32,1.41,1.41,1.33,1.17,1.21,1.75,2.56,3.2,3.36,3.44,3.26,2.91,2.51,2.15,2.01,2,2.12,2.2,2.22,2.25,2.11,1.97,1.8,1.56,1.28,1.17,1.17,1.14,1.14,1.41,1.92,2.44,2.43,2.26,2,1.42,0.71,0.22,0.22,0.54,0.85,1.39,1.93,2.55,3.02,3.54,3.96,4.24,4.38,4.46,4.17,3.75,3.41,3.4,3.61,3.76,3.83,3.89,3.82,3.68,3.4,3.11,2.97,2.9,2.69,2.33,1.91,1.64,1.57,1.58,1.73,1.9,2.01,2.22,2.41,2.6,2.8,3.1,3.4,3.6,3.7,3.7,3.8,3.9,4.1,4.2,4.2,4.2,4.11,4.01,3.91],"80m":[7.29,7.19,6.74,6.69,7.36,7.19,7.41,7.74,8.13,8.96,7.96,7.66,8.54,9.4,8.86,8.7,8.35,8.39,8.16,8.15,7.66,7.5,7.43,7.48,7.42,7.61,6.04,4.6,3.01,2.37,2.28,1.64,1.28,2.18,6.44,6.26,5.75,6.5,6.53,6.82,6.61,6.77,6.52,7.5,7.74,7.03,6.16,6.13,6.14,5.91,4.63,3.81,3.31,3.41,2.5,2.31,2.1,1.73,1.26,1.08,1.65,1.96,1.7,2.21,2.83,3.37,2.89,3.62,4.18,4.34,4.11,3.55,3.16,2.97,2.92,2.86,2.92,3.04,3.1,2.88,2.59,2.66,3.36,4.39,5.16,5.42,5.32,5.19,5.01,4.74,4.52,4.39,4.4,4.53,4.64,4.8,4.88,4.7,4.34,3.94,3.5,2.98,2.69,2.62,2.48,2.44,2.57,3.21,3.76,3.64,3.23,2.88,2.27,1.35,0.81,0.5,0.32,0.41,1.71,3.8,5.42,6.28,6.93,7.52,7.94,8.28,8.28,7.79,7.12,6.58,6.47,6.51,6.65,6.73,6.72,6.72,6.51,6.22,6.01,5.8,5.66,5.32,4.69,3.92,3.33,3.18,3.4,3.62,3.9,4.23,4.57,4.95,5.41,5.8,6.2,6.51,6.82,6.92,7.02,7.11,7.5,8,8.4,8.4,8.33,8.26,8.16,8.05],"100m":[8.74,8.64,8.33,8.25,9.03,8.81,8.99,9.43,9.35,9.81,9.02,8.49,9.37,10.29,9.68,9.7,9.35,9.79,9.91,9.84,9.49,9.29,9.44,8.94,9.16,9.15,7.11,5.39,4.24,3.6,3.19,2.76,1.77,2.95,6.61,6.85,6.32,7.44,7.28,7.88,7.65,7.98,7.76,8.9,9.53,8.14,7.55,8.14,7.56,7.64,6.27,5.09,4.32,4.41,3.15,2.79,2.48,2.28,1.33,1.18,1.55,2.08,2.16,2.36,2.95,3.93,3.85,4.61,5.92,5.93,5.85,5.4,4.86,4.47,4.08,3.78,3.77,3.91,3.97,3.77,3.53,3.63,4.1,4.87,5.46,5.49,5.35,5.35,5.7,6.27,6.59,6.53,6.3,6.29,6.42,6.57,6.59,6.33,5.89,5.4,4.74,4.03,3.61,3.61,3.86,3.99,3.8,3.73,3.81,3.59,3.28,2.94,2.36,1.73,1.2,0.83,0.71,0.55,2.02,4.57,6.61,7.5,7.83,8.28,8.83,9.3,9.37,8.91,8.21,7.64,7.29,7.22,7.14,7.21,7.2,7.21,7.14,7.01,6.88,6.75,6.63,6.37,5.71,4.84,4.16,3.93,4.08,4.32,4.62,5.09,5.66,6.23,6.96,7.41,7.6,7.58,7.58,7.58,7.67,7.86,8.53,9.41,9.99,10.1,9.95,9.81,9.63,9.5],"120m":[8.92,8.82,8.5,8.42,9.21,8.99,9.18,9.63,9.54,10.02,9.21,8.67,9.56,10.5,9.88,9.9,9.55,9.99,10.12,10.04,9.69,9.48,9.63,9.13,9.35,9.34,7.26,5.5,4.33,3.67,3.26,2.82,1.8,3.01,6.74,6.99,6.45,7.59,7.43,8.04,7.81,8.15,7.92,9.08,9.73,8.31,7.71,8.31,7.72,7.8,6.4,5.2,4.4,4.5,3.21,2.84,2.53,2.33,1.36,1.2,1.58,2.12,2.2,2.41,3.01,4.01,3.93,4.7,6.04,6.05,5.97,5.51,4.96,4.57,4.17,3.86,3.85,3.99,4.05,3.85,3.61,3.7,4.19,4.97,5.57,5.61,5.46,5.46,5.82,6.4,6.72,6.66,6.44,6.42,6.55,6.71,6.72,6.46,6.02,5.52,4.83,4.12,3.69,3.69,3.94,4.07,3.88,3.81,3.89,3.67,3.34,3,2.41,1.77,1.22,0.85,0.73,0.57,2.06,4.66,6.74,7.66,7.99,8.45,9.01,9.49,9.56,9.09,8.38,7.79,7.44,7.37,7.28,7.36,7.35,7.36,7.29,7.15,7.02,6.89,6.76,6.5,5.82,4.94,4.25,4.02,4.16,4.4,4.72,5.2,5.77,6.36,7.1,7.57,7.75,7.74,7.73,7.73,7.83,8.02,8.71,9.6,10.2,10.31,10.16,10.01,9.83,9.7],"180m":[9.84,11.1,11.07,10.94,10.78,11.5,11.27,9.76,9.82,10.5,11.33,9.84,10.66,11.3,10.76,11.17,10.68,11.67,12.02,12.11,12.06,11.84,12.18,10.94,11.2,11.13,8.24,7.64,4.78,4.41,4.46,3.48,3.03,3.72,7.29,10.26,7.26,8.77,9.24,9.54,9.2,9.69,9.72,11.72,12.6,9.5,9.9,10.1,9.34,8.57,7.1,6.45,5.44,5.52,4.91,4.46,3.91,3.94,3.5,2.52,1.58,2.12,2.86,3.08,3.65,4.53,5.61,6.05,7.79,7.64,7.48,6.66,6.05,5.58,5.11,4.82,4.58,4.38,4.44,4.53,4.88,5.31,5.59,5.96,6.18,5.99,5.64,5.59,6.23,7.1,7.74,7.92,8.08,8.24,8.14,7.76,7.43,7.34,7.31,6.96,6.14,5.12,4.52,4.65,5.09,5.25,4.77,4.21,3.89,3.6,3.37,3.1,2.62,2.05,1.63,1.36,1.26,0.92,2.37,5.47,7.85,8.84,9.15,9.54,10.1,10.72,10.93,10.64,9.99,9.36,8.77,8.26,8,7.85,7.92,8.01,8.16,8.4,8.42,8.14,7.72,7.1,6.41,5.59,5.17,5.22,5.51,5.98,6.31,6.74,7.21,8,8.93,9.56,9.49,9.11,8.87,8.75,8.64,8.93,9.81,11.01,11.91,12.05,11.94,11.85,11.79,11.57],"dir":[150,151,152,150,153,151,151,147,147,148,148,141,143,143,144,134,134,131,133,134,135,137,138,145,145,159,168,179,199,209,223,243,251,291,328,341,347,347,349,349,358,346,356,352,356,357,350,358,356,1,358,360,357,360,5,10,9,25,36,48,108,109,93,85,84,86,83,89,106,121,121,119,118,119,120,121,118,112,110,115,124,128,123,115,111,112,116,118,119,119,120,126,134,143,149,153,157,158,159,158,156,151,147,147,150,155,168,185,198,206,212,217,222,227,235,225,196,225,293,301,305,311,317,320,320,318,318,320,324,327,324,318,314,314,315,316,317,318,319,320,322,323,325,328,333,341,350,357,5,11,14,13,10,8,7,6,5,5,5,4,3,1,1,3,6,9,9,8]},"g":{"10m":[4.05,4.17,4.03,4.03,4.17,4.24,4.19,4.14,4.44,5.17,6.08,6.37,6.53,6.66,7.34,6.42,6.01,5.6,5.6,5.05,4.56,4.64,4.96,5.41,5.45,4.52,3.3,3.16,2.97,2.33,2.08,2,2.42,4.72,5.05,5.22,5.18,4.75,4.9,4.83,4.6,3.8,3.72,3.45,4.07,4.05,4.63,3.69,2.91,2.96,2.5,1.6,1.4,1.2,0.6,0.8,0.41,0.78,0.72,1.77,2.78,2.75,2.4,2.33,1.68,1.56,1.77,2.14,1.98,1.56,1.39,1.61,1.66,1.8,1.84,1.57,1.49,1.55,1.2,1.24,1.51,2.4,3.81,4.24,4.2,4.27,4.14,4.2,3.94,4.02,3.58,3.24,3.2,2.83,2.62,2.72,2.5,2.24,2.1,2.19,1.97,1.92,1.8,2.11,2.16,2.06,2.42,2.73,2.71,2.69,2.51,2.11,1.8,1.8,2.1,2.06,2,2.59,4.34,6.69,8.22,8.36,7.76,7.21,6.72,6.28,5.85,5.73,5.73,5.81,5.95,6.11,6.1,5.8,5.41,4.83,4.12,3.31,2.7,2.41,2.35,2.28,1.96,1.65,1.43,1.33,1.26,1.17,0.95,0.61,0.41,0.42,0.54,0.6,0.58,0.73,0.92,1.06,1.43,1.73,1.6,1.24,0.98,0.67,0.3,0.36,0.64,1.06],"80m":[6.22,6.44,6.3,6.16,6.23,6.44,6.73,6.74,6.95,7.71,8.77,8.84,9.17,9.16,9.76,9.36,8.92,8.48,8.49,7.57,7.06,7.25,7.6,8.3,8.64,7.29,5.26,4.55,4.33,4.03,3.72,3.52,4.33,6.86,6.84,6.93,6.45,5.61,5.9,5.92,5.6,5.4,5.45,5,5.57,5.73,6.43,6.33,4.32,3.73,3.51,2.21,1.51,1.26,0.78,0.81,1.04,1.39,1.42,2.41,3.61,3.62,3.2,3.18,3.02,3.26,3.69,3.39,2.92,2.47,2.24,2.58,2.64,2.64,2.78,2.52,2.56,2.68,2.34,2.24,2.83,3.62,4.39,5.26,5.39,5.19,5.11,5.41,5.47,5.95,6.44,5.98,5.59,5.09,4.58,5.16,4.46,4.12,4.06,4.06,3.56,3.26,3.14,3.47,3.39,3.08,2.95,3.23,3.11,3.06,2.85,2.46,2.06,2.2,2.69,2.72,2.7,3.54,6.23,9.83,12.11,12.25,11.18,10.29,9.65,9,8.47,8.28,8.3,8.18,8.1,7.93,7.71,7.22,6.65,6.08,5.56,4.93,4.51,4.21,4.02,3.62,3.01,2.21,1.7,1.5,1.61,1.51,1.2,0.8,0.45,0.41,0.71,0.85,0.78,0.73,0.82,0.92,1.21,1.32,1.22,1.03,0.99,0.71,0.3,0.5,1.06,1.84],"100m":[6.51,6.73,6.74,6.45,6.59,6.93,7.07,7.15,7.52,8.06,9.06,9.19,9.53,9.46,10.07,9.67,9.28,8.84,8.85,8.07,7.34,7.45,8.02,8.63,9.04,7.57,5.56,4.88,4.68,4.3,4.02,3.71,4.69,7.14,6.98,7.02,6.55,5.71,6,6.03,5.6,5.6,5.76,5.3,5.76,5.92,6.73,6.62,4.41,3.92,3.6,2.22,1.53,1.3,0.86,0.89,1.17,1.58,1.63,2.55,3.69,3.67,3.29,3.18,3.08,3.55,4.18,3.75,3.12,2.69,2.59,3,2.98,2.98,3.05,2.86,2.8,3,2.77,2.69,3.37,4.04,4.49,5.36,5.48,5.19,5.2,5.55,5.56,6.18,6.77,6.47,6.16,5.59,5.22,5.92,5.02,4.88,4.67,4.68,4.1,3.75,3.47,3.82,3.54,3.22,3.04,3.23,3.21,3.06,2.85,2.55,2.13,2.21,2.66,2.66,2.64,3.62,6.45,10.14,12.55,12.7,11.68,10.8,10.07,9.32,8.79,8.57,8.59,8.47,8.3,8.13,7.91,7.42,6.75,6.18,5.66,5.12,4.7,4.5,4.31,4.01,3.31,2.5,1.9,1.7,1.6,1.5,1.2,0.81,0.5,0.51,0.81,0.95,0.86,0.73,0.82,0.99,1.3,1.51,1.41,1.12,0.99,0.64,0.2,0.5,1.27,2.22],"120m":[6.64,6.87,6.88,6.59,6.72,7.07,7.22,7.3,7.67,8.23,9.24,9.38,9.72,9.66,10.28,9.87,9.47,9.02,9.03,8.24,7.49,7.61,8.19,8.81,9.23,7.73,5.67,4.98,4.78,4.39,4.11,3.78,4.78,7.29,7.12,7.17,6.69,5.83,6.13,6.15,5.72,5.72,5.87,5.41,5.88,6.04,6.87,6.76,4.5,4,3.68,2.27,1.56,1.33,0.88,0.91,1.19,1.61,1.66,2.6,3.77,3.74,3.36,3.24,3.14,3.62,4.26,3.83,3.19,2.75,2.65,3.06,3.04,3.04,3.12,2.92,2.86,3.06,2.83,2.75,3.44,4.13,4.58,5.47,5.6,5.29,5.31,5.66,5.67,6.31,6.91,6.6,6.28,5.71,5.33,6.04,5.12,4.98,4.77,4.77,4.19,3.83,3.54,3.9,3.61,3.29,3.1,3.3,3.27,3.12,2.9,2.6,2.17,2.25,2.71,2.72,2.69,3.7,6.58,10.35,12.81,12.96,11.92,11.02,10.27,9.51,8.97,8.75,8.77,8.65,8.47,8.3,8.07,7.57,6.89,6.31,5.77,5.23,4.8,4.6,4.4,4.09,3.37,2.55,1.94,1.74,1.64,1.53,1.22,0.82,0.51,0.52,0.82,0.97,0.88,0.74,0.84,1.01,1.33,1.54,1.44,1.14,1.01,0.65,0.2,0.51,1.3,2.27],"dir":[135,138,139,139,138,136,134,132,131,134,137,136,141,144,156,150,143,128,124,124,128,130,126,122,128,146,172,191,200,211,235,267,304,323,333,340,348,349,358,6,360,359,8,2,343,344,355,356,356,354,358,8,11,23,54,63,110,125,133,138,147,154,160,156,144,130,132,136,130,121,118,127,130,130,122,126,125,120,116,105,102,99,102,99,105,109,113,118,120,119,124,129,133,137,144,127,134,133,133,132,133,136,131,137,137,144,153,158,176,191,198,206,229,265,290,304,323,332,330,329,329,333,339,344,347,348,348,349,348,348,351,355,357,356,353,351,352,354,358,357,356,356,357,358,360,360,356,356,360,7,37,79,97,108,126,164,194,225,247,262,278,297,315,321,270,217,225,234]}};
+  var CFG={site:1.14,rho:1.198,net:0.92,price:1.42,hub:105,R:45,
+    norm:[17.25,16.48,15.14,14.46,10.69,9.44,8.73,8.84,10.8,12.6,13.14,16.2],
+    url:"https://api.open-meteo.com/v1/forecast?latitude=46.8932&longitude=28.6946&hourly=wind_speed_10m,wind_speed_80m,wind_speed_100m,wind_speed_120m,wind_speed_180m,wind_direction_100m&wind_speed_unit=ms&timezone=Europe%2FChisinau&forecast_days=7&models=ecmwf_ifs025,icon_seamless,gfs_seamless"};
+  var PC=[[3,0],[3.5,42],[4,93],[4.5,145],[5,211],[5.5,284],[6,391],[6.5,492],[7,601],[7.5,732],[8,885],[8.5,1088],[9,1247],[9.5,1430],[10,1594],[10.5,1743],[11,1861],[11.5,1948],[12,1993],[12.5,2000],[25,2000]];
+  var MODELS=["e","i","g"],MNAME={e:"ECMWF",i:"ICON",g:"GFS"},MCOL={e:"var(--accent)",i:"var(--m2)",g:"var(--m3)"};
+  var DAYN=["Paz","Pzt","Sal","Çar","Per","Cum","Cmt"],MONN=["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"];
+  var MONL=["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+  var LAST=0,D=null,C={},T=[],N=0,NOW=0,STALE=false,sel=0,range=24,dayIdx=0,DAYS=[],price=CFG.price,LIVE=false,FETCHED="";
+  try{var sp=parseFloat(localStorage.getItem("eco_price"));if(sp>0&&sp<20)price=sp}catch(e){}
+  try{var sr=parseInt(localStorage.getItem("eco_range"),10);if(sr===24||sr===48||sr===168)range=sr}catch(e){}
+
+  function $(id){return document.getElementById(id)}
+  function fmt(n,d){return (isFinite(n)?n:0).toLocaleString("tr-TR",{minimumFractionDigits:d,maximumFractionDigits:d})}
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+  function pw(v){if(!(v>=3)||v>25)return 0;for(var k=0;k<PC.length-1;k++){var a=PC[k],b=PC[k+1];if(v<=b[0])return a[1]+(b[1]-a[1])*(v-a[0])/(b[0]-a[0])}return 0}
+  function compass(d){return ["K","KKD","KD","DKD","D","DGD","GD","GGD","G","GGB","GB","BGB","B","BKB","KB","KKB"][Math.round(((d%360)+360)%360/22.5)%16]}
+  function clamp(x,a,b){return Math.min(Math.max(x,a),b)}
+
+  /* rüzgar profili: verilen seviyeler arasında üs yasası, üstte son iki seviyenin kesmesiyle uzatma */
+  function profile(lv){
+    return function(z){
+      for(var k=0;k<lv.length-1;k++){
+        var z1=lv[k][0],u1=lv[k][1],z2=lv[k+1][0],u2=lv[k+1][1];
+        if(z<=z2||k===lv.length-2){
+          if(u1>0.05&&u2>0.05){var a=Math.log(u2/u1)/Math.log(z2/z1);if(z>z2)a=clamp(a,0,0.6);else a=clamp(a,-0.3,0.9);return u1*Math.pow(z/z1,a)}
+          return Math.max(0,u1+(u2-u1)*(z-z1)/(z2-z1));
+        }
+      }
+      return lv[lv.length-1][1];
+    };
+  }
+  var SLICES=[];(function(){for(var z=60;z<=150;z+=5){var w=Math.sqrt(Math.max(0,CFG.R*CFG.R-(z-CFG.hub)*(z-CFG.hub)));if(w>0)SLICES.push([z,w])}})();
+  var DENS=Math.pow(CFG.rho/1.225,1/3);
+
+  function compute(){
+    N=D.time.length;C={};
+    MODELS.forEach(function(m){
+      var src=D[m];if(!src)return;
+      var hub=[],rew=[],kw=[],v100=[];
+      for(var i=0;i<N;i++){
+        var lv=[];[["10m",10],["80m",80],["100m",100],["120m",120],["180m",180]].forEach(function(p){var a=src[p[0]];if(a&&a[i]!=null)lv.push([p[1],a[i]*CFG.site])});
+        if(lv.length<2){hub.push(null);rew.push(null);kw.push(0);v100.push(null);continue}
+        var u=profile(lv),h=u(CFG.hub),s=0,w=0;
+        SLICES.forEach(function(sl){var x=u(sl[0]);s+=sl[1]*x*x*x;w+=sl[1]});
+        var r=Math.cbrt(s/w);hub.push(h);rew.push(r);kw.push(pw(r*DENS));v100.push(u(100));
+      }
+      C[m]={hub:hub,rew:rew,kw:kw,v100:v100,dir:src.dir||[]};
+    });
+    DAYS=[];var cur=null;
+    for(var i=0;i<N;i++){var dk=T[i].slice(0,10);if(!cur||cur.key!==dk){cur={key:dk,idx:[]};DAYS.push(cur)}cur.idx.push(i)}
+    DAYS=DAYS.filter(function(d){return d.idx.length>=20}).slice(0,7);
+  }
+  function wallNow(){
+    var p=new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Chisinau",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false}).formatToParts(new Date()),o={};
+    p.forEach(function(x){o[x.type]=x.value});var hh=o.hour==="24"?"00":o.hour;
+    return o.year+"-"+o.month+"-"+o.day+"T"+hh+":"+o.minute;
+  }
+  function findNow(){
+    var w=wallNow(),key=w.slice(0,13)+":00",i=T.indexOf(key);
+    STALE=false;
+    if(i<0){if(key<T[0])i=0;else{i=N-1;STALE=true}}
+    NOW=i;
+  }
+  function parseT(s){return {y:+s.slice(0,4),mo:+s.slice(5,7)-1,d:+s.slice(8,10),h:+s.slice(11,13),mi:+s.slice(14,16)}}
+  function wd(s){var p=parseT(s);return new Date(Date.UTC(p.y,p.mo,p.d)).getUTCDay()}
+  function pad(n){return n<10?"0"+n:""+n}
+  function hh(i){return T[i].slice(11,16)}
+  function dayLabel(i){var p=parseT(T[i]);return DAYN[wd(T[i])]+" "+p.d}
+  function dayLong(i){var p=parseT(T[i]);return DAYN[wd(T[i])]+" "+p.d+" "+MONN[p.mo]}
+  function stamp(s){if(!s)return"—";var p=parseT(s);return p.d+" "+MONN[p.mo]+" "+pad(p.h)+":"+pad(p.mi)}
+  function normFor(i){return CFG.norm[parseT(T[i]).mo]}
+  function avg(a,f,t){var s=0,c=0;for(var i=f;i<t&&i<N;i++){if(a[i]!=null){s+=a[i];c++}}return c?s/c:0}
+  function energy(m,f,t){var s=0,k=C[m]?C[m].kw:[];for(var i=f;i<t&&i<N;i++)s+=k[i]||0;return s/1000*CFG.net}
+  function erange(f,t){var v=MODELS.filter(function(m){return C[m]}).map(function(m){return energy(m,f,t)});return {min:Math.min.apply(null,v),max:Math.max.apply(null,v),all:v}}
+  function lei(mwh){return mwh*1000*price}
+  function agree(f,t){
+    var r=erange(f,t),mean=r.all.reduce(function(a,b){return a+b},0)/r.all.length,sp=(r.max-r.min)/Math.max(mean,0.5*(t-f)/24);
+    return sp<0.3?{t:"Modeller uyumlu",c:"good",s:sp}:sp<0.6?{t:"Modeller kısmen ayrışıyor",c:"mid",s:sp}:{t:"Modeller ayrışıyor, belirsiz",c:"bad",s:sp};
+  }
+
+  function status(){
+    var el=$("status");el.className="status"+(LIVE?" live":"");
+    $("st-text").innerHTML=LIVE?"Canlı · <b>"+esc(stamp(FETCHED))+"</b> güncellendi · saat başı yenilenir":(STALE?"<b>Tahmin eskidi</b> · ":"")+"Kayıtlı veri · <b>"+esc(stamp(FETCHED))+"</b>";
+  }
+  function hero(){
+    var e=C.e,to=Math.min(NOW+24,N),m=avg(e.hub,NOW,to),r=erange(NOW,to),eE=energy("e",NOW,to),nm=normFor(NOW)*(to-NOW)/24,pct=nm>0?eE/nm*100:0,t;
+    if(STALE){t="Bu tahminin süresi doldu.";}
+    else if(m>=8)t="Güçlü rüzgar, yüksek üretim.";
+    else if(m>=6)t="Üretim için elverişli rüzgar.";
+    else if(m>=4.5)t="Orta rüzgar, kısmi üretim.";
+    else t="Zayıf rüzgar, düşük üretim.";
+    $("h-title").textContent=t;
+    $("h-text").innerHTML="Önümüzdeki 24 saatte 105 m'de ortalama <b>"+fmt(m,1)+" m/s</b>. Tahmini üretim <b>"+fmt(eE,1)+" MWh</b> (modeller "+fmt(r.min,1)+"–"+fmt(r.max,1)+"), yaklaşık <b>"+fmt(lei(eE),0)+" lei</b>.";
+    var ag=agree(NOW,to);
+    $("h-chips").innerHTML='<span class="chip '+(pct>=110?"good":pct>=70?"":"mid")+'">'+MONL[parseT(T[NOW]).mo]+' normaline göre %'+fmt(pct,0)+'</span><span class="chip '+ag.c+'">'+ag.t+'</span><span class="chip">'+fmt(price,2)+' lei/kWh</span>';
+    var h=e.hub[sel]||0;$("rotor").style.setProperty("--spin",(e.kw[sel]>0?Math.max(1.4,22/Math.max(h,1)):60)+"s");
+  }
+  function tiles(){
+    var e=C.e,to=Math.min(NOW+24,N),eE=energy("e",NOW,to),r=erange(NOW,to),ok=0;
+    for(var i=NOW;i<to;i++)if(e.kw[i]>0)ok++;
+    var selL=sel===NOW?"Şimdi ("+hh(sel)+")":dayLabel(sel)+", saat "+hh(sel);
+    var t=[
+      [selL+" rüzgar",fmt(e.hub[sel],1),"m/s",fmt(e.kw[sel],0)+" kW güç · ICON "+fmt(C.i?C.i.hub[sel]:0,1)+" · GFS "+fmt(C.g?C.g.hub[sel]:0,1)],
+      ["24 saat üretim",fmt(eE,1),"MWh","modeller "+fmt(r.min,1)+"–"+fmt(r.max,1)+" MWh"],
+      ["24 saat gelir",fmt(lei(eE),0),"lei",'fiyat <input id="price" type="number" min="0" max="20" step="0.01" value="'+price.toFixed(2)+'" aria-label="Satış fiyatı, lei/kWh"> lei/kWh'],
+      ["Üretimde geçen saat",String(ok),"/ "+(to-NOW),"rotor 3 m/s üzerinde dönüyor"]
+    ];
+    $("tiles").innerHTML=t.map(function(a){return '<div class="tile"><div class="l">'+esc(a[0])+'</div><div class="v">'+a[1]+'<small>'+a[2]+'</small></div><div class="s">'+a[3]+'</div></div>'}).join("");
+    var pi=$("price");pi.addEventListener("change",function(){var v=parseFloat(pi.value.replace(",","."));if(v>0&&v<20){price=v;try{localStorage.setItem("eco_price",String(v))}catch(e){}renderAll()}});
+  }
+  function three(){
+    var e=C.e,to=Math.min(NOW+24,N),best=-1,bm=-1;
+    for(var i=NOW;i+3<=to;i++){var m=avg(e.hub,i,i+3);if(m>bm){bm=m;best=i}}
+    var strong=[],low=[];for(var j=NOW;j<to;j++){if(e.hub[j]>=10)strong.push(j);if(e.kw[j]<=0)low.push(j)}
+    var s1=best<0?"Yeterli veri yok.":hh(best)+"–"+hh(Math.min(best+3,N-1))+" arası, ortalama "+fmt(bm,1)+" m/s, yaklaşık "+fmt(energy("e",best,best+3),1)+" MWh.";
+    var s2=strong.length?strong.length+" saat 10 m/s üzerinde; türbin bu saatlerde nominal güce yakın çalışır.":"10 m/s üzerine çıkan saat yok; nominal güce ulaşılmaz.";
+    var s3=low.length?low.length+" saat üretim yok (rüzgar 3 m/s altında). Bakım için uygun pencere: "+longestRun(low)+".":"Her saat üretim var.";
+    $("three").innerHTML='<div class="info"><b>En verimli 3 saat</b><span>'+s1+'</span></div><div class="info"><b>Güçlü saatler</b><span>'+s2+'</span></div><div class="info"><b>Durgun saatler</b><span>'+s3+'</span></div>';
+  }
+  function longestRun(a){
+    if(!a.length)return"—";var bs=a[0],bl=1,cs=a[0],cl=1;
+    for(var k=1;k<a.length;k++){if(a[k]===a[k-1]+1){cl++}else{cs=a[k];cl=1}if(cl>bl){bl=cl;bs=cs}}
+    return dayLabel(bs)+" "+hh(bs)+"–"+hh(Math.min(bs+bl,N-1))+" ("+bl+" saat)";
+  }
+  function days(){
+    var h="",tot=0,totN=0,lo=0,hi=0;
+    DAYS.forEach(function(d,k){
+      var f=d.idx[0],t=d.idx[d.idx.length-1]+1,e=energy("e",f,t),r=erange(f,t),nm=normFor(f)*(t-f)/24,mx=0;
+      tot+=e;totN+=nm;lo+=r.min;hi+=r.max;
+      for(var i=f;i<t;i++)if(C.e.hub[i]>mx)mx=C.e.hub[i];
+      var scale=Math.max(nm*2.2,1),w=Math.min(100,e/scale*100),nx=Math.min(100,nm/scale*100);
+      h+='<button type="button" class="day" data-d="'+k+'" aria-pressed="'+(k===dayIdx)+'"><div class="n">'+dayLabel(f)+(f<=NOW&&NOW<t?" · bugün":"")+'</div><div class="w">'+fmt(e,1)+'<small> MWh</small></div><div class="m">aralık '+fmt(r.min,1)+'–'+fmt(r.max,1)+'</div><div class="m">'+fmt(lei(e)/1000,1)+' bin lei · '+fmt(avg(C.e.hub,f,t),1)+' m/s</div><div class="b"><i style="width:'+w+'%"></i><u style="left:'+nx+'%"></u></div></button>';
+    });
+    $("days").innerHTML=h;
+    var pct=totN>0?tot/totN*100:0;
+    $("week").innerHTML='<span>7 gün toplam <b>'+fmt(tot,1)+' MWh</b></span><span>modeller <b>'+fmt(lo,1)+'–'+fmt(hi,1)+'</b></span><span>gelir <b>'+fmt(lei(tot),0)+' lei</b></span><span>normale göre <b>%'+fmt(pct,0)+'</b></span>';
+    Array.prototype.forEach.call($("days").querySelectorAll("button"),function(b){
+      b.addEventListener("click",function(){dayIdx=+b.getAttribute("data-d");var d=DAYS[dayIdx];sel=(NOW>=d.idx[0]&&NOW<=d.idx[d.idx.length-1])?NOW:d.idx[Math.min(12,d.idx.length-1)];renderSel();table();rose()});
+    });
+  }
+  function table(){
+    var d=DAYS[dayIdx];if(!d)return;var h="";
+    $("t-title").textContent="Saat saat · "+dayLong(d.idx[0]);
+    d.idx.forEach(function(i){
+      h+='<tr tabindex="0" data-i="'+i+'"'+(i===sel?' class="sel"':'')+'><td>'+hh(i)+(i===NOW?" ◂":"")+'</td><td class="e">'+fmt(C.e.hub[i],1)+'</td><td class="i">'+(C.i?fmt(C.i.hub[i],1):"–")+'</td><td class="g">'+(C.g?fmt(C.g.hub[i],1):"–")+'</td><td>'+fmt(C.e.rew[i],1)+' m/s</td><td>'+fmt(C.e.kw[i],0)+'</td><td>'+fmt(C.e.kw[i]*CFG.net*price,0)+'</td><td>'+compass(C.e.dir[i])+' '+Math.round(C.e.dir[i])+'°</td></tr>';
+    });
+    $("rows").innerHTML=h;
+    Array.prototype.forEach.call($("rows").querySelectorAll("tr"),function(tr){
+      function go(){sel=+tr.getAttribute("data-i");renderSel()}
+      tr.addEventListener("click",go);tr.addEventListener("keydown",function(ev){if(ev.key==="Enter"||ev.key===" "){ev.preventDefault();go()}});
+    });
+  }
+  function rose(){
+    var d=DAYS[dayIdx];if(!d)return;
+    var bins=new Array(8).fill(0),ebin=new Array(8).fill(0);
+    d.idx.forEach(function(i){var b=Math.round((((C.e.dir[i]%360)+360)%360)/45)%8;bins[b]++;ebin[b]+=C.e.kw[i]})
+    var mx=Math.max.apply(null,bins)||1,cx=110,cy=110,R=78,s='<svg viewBox="0 0 220 220" role="img" aria-label="Rüzgar yönü dağılımı">';
+    [0.33,0.66,1].forEach(function(f){s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(R*f)+'" fill="none" stroke="var(--line)"/>'});
+    var lab=["K","KD","D","GD","G","GB","B","KB"];
+    for(var b=0;b<8;b++){
+      var a0=(b*45-20)*Math.PI/180,a1=(b*45+20)*Math.PI/180,r=bins[b]/mx*R;
+      if(r>0){s+='<path d="M'+cx+' '+cy+' L'+(cx+r*Math.sin(a0))+' '+(cy-r*Math.cos(a0))+' A'+r+' '+r+' 0 0 1 '+(cx+r*Math.sin(a1))+' '+(cy-r*Math.cos(a1))+' Z" fill="var(--accent)" opacity="'+(0.35+0.6*(ebin[b]/Math.max(1,Math.max.apply(null,ebin))))+'"/>'}
+      var la=b*45*Math.PI/180;s+='<text x="'+(cx+(R+16)*Math.sin(la))+'" y="'+(cy-(R+16)*Math.cos(la)+4)+'" text-anchor="middle" style="fill:var(--fg)">'+lab[b]+'</text>';
+    }
+    var top=bins.indexOf(Math.max.apply(null,bins));
+    s+='</svg>';
+    $("rose").innerHTML=s+'<div class="d" style="margin:0;text-align:center">Baskın yön <b>'+lab[top]+'</b>, '+bins[top]+' saat. Koyu dilim daha çok enerji demek.</div>';
+    $("r-title").textContent="Rüzgar yönü · "+dayLabel(d.idx[0]);
+  }
+  function tabs(){
+    $("tabs").innerHTML=[[24,"24 saat"],[48,"48 saat"],[168,"7 gün"]].map(function(r){return '<button type="button" data-r="'+r[0]+'" aria-pressed="'+(r[0]===range)+'">'+r[1]+'</button>'}).join("");
+    Array.prototype.forEach.call($("tabs").querySelectorAll("button"),function(b){b.addEventListener("click",function(){range=+b.getAttribute("data-r");try{localStorage.setItem("eco_range",String(range))}catch(e){}tabs();chart()})});
+  }
+  function chart(){
+    var el=$("chart"),W=Math.max(el.clientWidth,300),H=Math.round(clamp(W*0.5,280,400));
+    var from=range===168?0:NOW,to=Math.min(from+range,N),n=to-from;if(n<2){from=Math.max(0,N-24);to=N;n=to-from}
+    var m={l:34,r:10,t:12,b:26},iw=W-m.l-m.r,top=H*0.60-m.t,gap=24,bh=H-m.t-m.b-top-gap;
+    var X=function(i){return m.l+(i-from)/Math.max(n-1,1)*iw};
+    var all=[];MODELS.forEach(function(k){if(C[k])for(var i=from;i<to;i++)all.push(C[k].hub[i]||0)});
+    var ymax=Math.max(12,Math.ceil(Math.max.apply(null,all)+1));
+    var Yw=function(v){return m.t+top-v/ymax*top},y0=m.t+top+gap,Yp=function(k){return y0+bh-k/2000*bh};
+    var s='<svg id="svg" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="105 m rüzgar hızı ve türbin gücü">';
+    var gs=ymax>16?4:2;
+    for(var g=0;g<=ymax;g+=gs){var y=Yw(g);s+='<line x1="'+m.l+'" x2="'+(W-m.r)+'" y1="'+y+'" y2="'+y+'" stroke="var(--line)"/><text x="'+(m.l-6)+'" y="'+(y+4)+'" text-anchor="end">'+g+'</text>'}
+    s+='<text x="2" y="9">m/s</text>';
+    for(var t=from+1;t<to;t++){if(hh(t)==="00:00")s+='<line x1="'+X(t)+'" x2="'+X(t)+'" y1="'+m.t+'" y2="'+(y0+bh)+'" stroke="var(--line)" stroke-dasharray="2 3"/>'}
+    s+='<line x1="'+m.l+'" x2="'+(W-m.r)+'" y1="'+Yw(4)+'" y2="'+Yw(4)+'" stroke="var(--low)" stroke-width="1.2" stroke-dasharray="4 4"/>';
+    var up=[],dn=[];
+    for(var i=from;i<to;i++){var v=MODELS.filter(function(k){return C[k]&&C[k].hub[i]!=null}).map(function(k){return C[k].hub[i]});up.push(X(i)+","+Yw(Math.max.apply(null,v)));dn.unshift(X(i)+","+Yw(Math.min.apply(null,v)))}
+    s+='<polygon points="'+up.join(" ")+" "+dn.join(" ")+'" fill="var(--band)" opacity=".14"/>';
+    ["g","i"].forEach(function(k){if(!C[k])return;var p=[];for(var i=from;i<to;i++)p.push(X(i)+","+Yw(C[k].hub[i]||0));s+='<polyline points="'+p.join(" ")+'" fill="none" stroke="'+MCOL[k]+'" stroke-width="1.3" opacity=".85" stroke-dasharray="'+(k==="g"?"5 3":"none")+'"/>'});
+    var pe=[];for(var i2=from;i2<to;i2++)pe.push(X(i2)+","+Yw(C.e.hub[i2]||0));
+    s+='<polyline points="'+pe.join(" ")+'" fill="none" stroke="var(--accent)" stroke-width="2.6" stroke-linejoin="round"/>';
+    var bw=Math.max(iw/n*0.72,1);
+    for(var j=from;j<to;j++){var k2=C.e.kw[j],h2=k2/2000*bh;s+='<rect x="'+(X(j)-bw/2)+'" y="'+(y0+bh-h2)+'" width="'+bw+'" height="'+h2+'" fill="var(--accent)" opacity="'+(j<NOW?0.35:0.8)+'"/>'}
+    s+='<line x1="'+m.l+'" x2="'+(W-m.r)+'" y1="'+(y0+bh)+'" y2="'+(y0+bh)+'" stroke="var(--line)"/>';
+    s+='<text x="'+m.l+'" y="'+(y0-7)+'">Güç (kW) · 0–2000</text>';
+    var step=range===24?3:range===48?6:24;
+    for(var q=from;q<to;q++){
+      var hr=+hh(q).slice(0,2),show=range===168?hr===12:hr%step===0;
+      if(show)s+='<text x="'+X(q)+'" y="'+(H-7)+'" text-anchor="middle">'+(range===168?dayLabel(q):hh(q).slice(0,2))+'</text>';
+    }
+    if(NOW>=from&&NOW<to&&!STALE)s+='<text x="'+X(NOW)+'" y="'+(y0+bh+11)+'" text-anchor="middle" style="fill:var(--fg)">▲</text>';
+    if(sel>=from&&sel<to){
+      s+='<line x1="'+X(sel)+'" x2="'+X(sel)+'" y1="'+m.t+'" y2="'+(y0+bh)+'" stroke="var(--fg)" stroke-width="1" opacity=".45"/>';
+      s+='<circle cx="'+X(sel)+'" cy="'+Yw(C.e.hub[sel]||0)+'" r="4.5" fill="var(--accent)" stroke="var(--panel)" stroke-width="2"/>';
+      var tx=X(sel),anc=tx>W*0.66?"end":"start",off=tx>W*0.66?-8:8;
+      s+='<text x="'+(tx+off)+'" y="'+(m.t+10)+'" text-anchor="'+anc+'" style="fill:var(--fg)">'+dayLabel(sel)+' '+hh(sel)+' · '+fmt(C.e.hub[sel],1)+' m/s · '+fmt(C.e.kw[sel],0)+' kW</text>';
+    }
+    s+='<rect x="'+m.l+'" y="0" width="'+iw+'" height="'+H+'" fill="transparent"/></svg>';
+    el.innerHTML=s;
+    var svg=$("svg");
+    function pick(ev){var r=svg.getBoundingClientRect(),x=(ev.clientX-r.left)/r.width*W,i=Math.round(from+(x-m.l)/iw*(n-1));i=clamp(i,from,to-1);if(i!==sel){sel=i;var di=DAYS.findIndex(function(d){return d.idx.indexOf(i)>=0});if(di>=0&&di!==dayIdx){dayIdx=di;days();table();rose()}renderSel()}}
+    svg.addEventListener("pointermove",function(e){if(e.pointerType==="mouse")pick(e)});
+    svg.addEventListener("click",pick);
+  }
+  function renderSel(){tiles();hero();chart();Array.prototype.forEach.call($("rows").querySelectorAll("tr"),function(tr){tr.className=(+tr.getAttribute("data-i")===sel)?"sel":""});Array.prototype.forEach.call($("days").querySelectorAll("button"),function(b){b.setAttribute("aria-pressed",String(+b.getAttribute("data-d")===dayIdx))})}
+  function renderAll(){status();tabs();hero();tiles();three();days();table();rose();chart()}
+
+  function useData(d,live,fetched){
+    D=d;T=d.time;LIVE=live;FETCHED=fetched;compute();findNow();
+    sel=NOW;dayIdx=Math.max(0,DAYS.findIndex(function(x){return x.idx.indexOf(NOW)>=0}));
+    renderAll();
+  }
+  function fromEmbed(E){
+    var t=[],p=parseT(E.start),base=Date.UTC(p.y,p.mo,p.d,p.h);
+    for(var i=0;i<E.e["100m"].length;i++){var dt=new Date(base+i*3600e3);t.push(dt.getUTCFullYear()+"-"+pad(dt.getUTCMonth()+1)+"-"+pad(dt.getUTCDate())+"T"+pad(dt.getUTCHours())+":00")}
+    return {time:t,e:E.e,i:E.i,g:E.g};
+  }
+  function fromApi(j){
+    var h=j.hourly,map={e:"ecmwf_ifs025",i:"icon_seamless",g:"gfs_seamless"},o={time:h.time};
+    MODELS.forEach(function(m){var x={};["10m","80m","100m","120m","180m"].forEach(function(l){var a=h["wind_speed_"+l+"_"+map[m]];if(a&&a.some(function(v){return v!=null}))x[l]=a});x.dir=h["wind_direction_100m_"+map[m]]||[];if(x["100m"])o[m]=x});
+    if(!o.e)throw new Error("ECMWF yok");
+    return o;
+  }
+  function load(){
+    if(typeof fetch!=="function")return;
+    var ctl=typeof AbortController!=="undefined"?new AbortController():null,tm=setTimeout(function(){if(ctl)ctl.abort()},12000);
+    fetch(CFG.url,{cache:"no-store",signal:ctl?ctl.signal:undefined}).then(function(r){if(!r.ok)throw new Error(r.status);return r.json()}).then(function(j){
+      clearTimeout(tm);LAST=Date.now();useData(fromApi(j),true,wallNow());
+    }).catch(function(){clearTimeout(tm);status()});
+  }
+
+  if(EMBED)useData(fromEmbed(EMBED),false,EMBED.fetched);
+  load();
+  setInterval(load,60*60*1000);
+  setInterval(function(){var o=NOW;findNow();if(o!==NOW){if(sel===o)sel=NOW;renderAll()}},60*1000);
+  var tmr;window.addEventListener("resize",function(){clearTimeout(tmr);tmr=setTimeout(chart,120)});
+  document.addEventListener("visibilitychange",function(){if(!document.hidden&&Date.now()-LAST>15*60*1000)load()});
+})();
+</script>
+</body></html>
