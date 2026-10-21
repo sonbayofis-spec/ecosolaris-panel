@@ -103,11 +103,19 @@ td.e{color:var(--accent)} td.i{color:var(--m2)} td.g{color:var(--m3)}
 .foot{font-size:12.5px;color:var(--muted);display:flex;flex-direction:column;gap:6px;max-width:90ch}
 .foot b{color:var(--fg);font-weight:500}
 @media (max-width:560px){.hero{grid-template-columns:1fr}.turb{display:none}}
+.lang{display:inline-flex;border:1px solid var(--top-muted);border-radius:5px;overflow:hidden}
+.lang button{font:inherit;font-family:var(--font-mono);font-size:12px;color:var(--top-muted);background:transparent;border:0;padding:3px 9px;cursor:pointer}
+.lang button[aria-pressed="true"]{background:var(--top-fg);color:var(--top)}
+.lk{font:inherit;font-size:12.5px;color:var(--accent);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.topr{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 </style>
 
 </head><body><div class="top"><div class="wrap">
-  <div class="brand">Ecosolaris Rüzgar Paneli<small>Vestas V90-2.0 MW · 105 m · Pojăreni</small></div>
-  <div class="status" id="status"><span class="dot"></span><span id="st-text">Yükleniyor…</span></div>
+  <div class="brand"><span data-i="brand">Ecosolaris Rüzgar Paneli</span><small>Vestas V90-2.0 MW · 105 m · Pojăreni</small></div>
+  <div class="topr">
+    <div class="status" id="status"><span class="dot"></span><span id="st-text">…</span></div>
+    <div class="lang" id="lang" role="group" aria-label="Dil / Language / Limba"><button type="button" data-l="tr">TR</button><button type="button" data-l="en">EN</button><button type="button" data-l="ro">RO</button></div>
+  </div>
 </div></div>
 
 <main class="wrap">
@@ -132,50 +140,50 @@ td.e{color:var(--accent)} td.i{color:var(--m2)} td.g{color:var(--m3)}
 
   <section class="panel">
     <div class="head">
-      <div><h2>Rüzgarın önümüzdeki seyri</h2><p class="d">Üstte 105 m rüzgar hızı, altta türbinin vereceği güç. Grafiğe dokunarak saat seçin.</p></div>
+      <div><h2 data-i="c_title"></h2><p class="d" data-i="c_desc"></p></div>
       <div class="tabs" id="tabs"></div>
     </div>
     <div id="chart"></div>
     <div class="legend">
-      <span><i style="background:var(--accent)"></i>ECMWF (ana tahmin)</span>
+      <span><i style="background:var(--accent)"></i><span data-i="lg_e"></span></span>
       <span><i style="background:var(--m2)"></i>ICON</span>
       <span><i style="background:var(--m3)"></i>GFS</span>
-      <span><i class="band" style="background:var(--band)"></i>Üç modelin aralığı</span>
-      <span><i style="background:var(--low)"></i>Başlama 4 m/s</span>
+      <span><i class="band" style="background:var(--band)"></i><span data-i="lg_band"></span></span>
+      <span><i style="background:var(--low)"></i><span data-i="lg_cut"></span></span>
     </div>
   </section>
 
   <section class="grid2">
     <div class="panel">
-      <h2>Önümüzdeki 24 saat</h2>
-      <p class="d">ECMWF tahmininden çıkan kısa özet.</p>
+      <h2 data-i="n_title"></h2>
+      <p class="d" data-i="n_desc"></p>
       <div class="three" id="three"></div>
     </div>
     <div class="panel">
-      <h2 id="r-title">Rüzgar yönü</h2>
-      <p class="d" id="r-sub">Seçili günde rüzgarın hangi yönden kaç saat estiği.</p>
+      <h2 id="r-title"></h2>
+      <p class="d" data-i="r_sub"></p>
       <div class="rosebox" id="rose"></div>
     </div>
   </section>
 
   <section class="panel">
-    <h2>7 günlük üretim</h2>
-    <p class="d">Çubuk, günün üretimini Ekim normaline göre gösterir; ince çizgi normal günü işaretler. Bir güne dokunun.</p>
+    <h2 data-i="w_title"></h2>
+    <p class="d" data-i="w_desc"></p>
     <div class="week" id="week"></div>
     <div class="days" id="days"></div>
   </section>
 
   <section class="panel">
-    <h2 id="t-title">Saat saat</h2>
-    <p class="d">Bir satıra dokunarak o saati seçin. Güç ve gelir ECMWF tahminine göredir.</p>
-    <div class="tw"><table><thead><tr><th>Saat</th><th>ECMWF</th><th>ICON</th><th>GFS</th><th>Rotor eşdeğeri</th><th>Güç (kW)</th><th>Gelir (lei)</th><th>Yön</th></tr></thead><tbody id="rows"></tbody></table></div>
+    <h2 id="t-title"></h2>
+    <p class="d" data-i="t_desc"></p>
+    <div class="tw"><table><thead><tr><th data-i="th_h"></th><th>ECMWF</th><th>ICON</th><th>GFS</th><th data-i="th_rew"></th><th data-i="th_kw"></th><th data-i="th_lei" id="th-lei"></th><th data-i="th_dir"></th></tr></thead><tbody id="rows"></tbody></table></div>
   </section>
 
-  <div class="foot" id="foot">
-    <span><b>Veri.</b> Open-Meteo üzerinden ECMWF IFS 0,25°, DWD ICON ve NOAA GFS. Model noktası 47,00 K 28,75 D; saha 46,893 K 28,695 D.</span>
-    <span><b>Saha düzeltmesi.</b> Modeller sahayı ~12 km'lik ızgarayla görür ve Pojăreni sırtındaki hızlanmayı kaçırır. Rüzgar hızları ×1,14 ile düzeltilir. Bu katsayı, 10 yıllık ERA5 verisinden çıkan yıllık üretimi 4,65 GWh'ye (Global Wind Atlas, ERA5 ve Tempelfelde'deki gerçek üretimle yapılan kontrolün ortası) eşitler.</span>
-    <span><b>Hesap.</b> 10–180 m rüzgar profilinden rotorun 60–150 m aralığındaki enerji eşdeğeri hız bulunur, hava yoğunluğu 1,198 kg/m³ için düzeltilir ve V90-2.0 MW güç eğrisinden (OEDB) güce çevrilir. MWh toplamlarında %92 net verim uygulanır. Ekim normali 2015–2024 ERA5 ortalamasıdır.</span>
-    <span>Bu bir hava tahminidir, sayaç verisi değildir. Modeller birbirinden ayrıldığında aralık genişler; o günler için tahmine daha az güvenin.</span>
+  <div class="foot">
+    <span data-i="f1"></span>
+    <span data-i="f2"></span>
+    <span data-i="f3"></span>
+    <span data-i="f4"></span>
   </div>
 </main>
 
@@ -186,21 +194,110 @@ td.e{color:var(--accent)} td.i{color:var(--m2)} td.g{color:var(--m3)}
     norm:[17.25,16.48,15.14,14.46,10.69,9.44,8.73,8.84,10.8,12.6,13.14,16.2],
     url:"https://api.open-meteo.com/v1/forecast?latitude=46.8932&longitude=28.6946&hourly=wind_speed_10m,wind_speed_80m,wind_speed_100m,wind_speed_120m,wind_speed_180m,wind_direction_100m&wind_speed_unit=ms&timezone=Europe%2FChisinau&forecast_days=7&models=ecmwf_ifs025,icon_seamless,gfs_seamless"};
   var PC=[[3,0],[3.5,42],[4,93],[4.5,145],[5,211],[5.5,284],[6,391],[6.5,492],[7,601],[7.5,732],[8,885],[8.5,1088],[9,1247],[9.5,1430],[10,1594],[10.5,1743],[11,1861],[11.5,1948],[12,1993],[12.5,2000],[25,2000]];
-  var MODELS=["e","i","g"],MNAME={e:"ECMWF",i:"ICON",g:"GFS"},MCOL={e:"var(--accent)",i:"var(--m2)",g:"var(--m3)"};
-  var DAYN=["Paz","Pzt","Sal","Çar","Per","Cum","Cmt"],MONN=["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"];
-  var MONL=["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
-  var LAST=0,D=null,C={},T=[],N=0,NOW=0,STALE=false,sel=0,range=24,dayIdx=0,DAYS=[],price=CFG.price,LIVE=false,FETCHED="";
+  var MODELS=["e","i","g"],MCOL={e:"var(--accent)",i:"var(--m2)",g:"var(--m3)"};
+
+  var I18N={
+    tr:{loc:"tr-TR",
+      days:["Paz","Pzt","Sal","Çar","Per","Cum","Cmt"],mon:["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"],
+      month:["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"],
+      c16:["K","KKD","KD","DKD","D","DGD","GD","GGD","G","GGB","GB","BGB","B","BKB","KB","KKB"],c8:["K","KD","D","GD","G","GB","B","KB"],
+      brand:"Ecosolaris Rüzgar Paneli",live:"Canlı · <b>{t}</b> güncellendi · saat başı yenilenir",stale:"<b>Tahmin eskidi</b> · ",saved:"Kayıtlı veri · <b>{t}</b>",
+      h_stale:"Bu tahminin süresi doldu.",h_strong:"Güçlü rüzgar, yüksek üretim.",h_good:"Üretim için elverişli rüzgar.",h_mid:"Orta rüzgar, kısmi üretim.",h_weak:"Zayıf rüzgar, düşük üretim.",
+      h_text:"Önümüzdeki 24 saatte 105 m'de ortalama <b>{v} m/s</b>. Tahmini üretim <b>{e} MWh</b> (modeller {lo}–{hi}), yaklaşık <b>{lei} lei</b> ({llo}–{lhi} lei).",h_text0:"Önümüzdeki 24 saatte 105 m'de ortalama <b>{v} m/s</b>. Tahmini üretim <b>{e} MWh</b> (modeller {lo}–{hi}), kapasite kullanımı %{cf}.",h_lei:" Brüt satış değeri ≈{lei} lei ({llo}–{lhi}); masraflar düşülmemiştir.",tile_cf:"Kapasite kullanımı, 24 saat",tile_cf_sub:"2 MW nominale göre · modeller %{lo}–%{hi}",show_lei:"Brüt satışı göster",hide_lei:"Satışı gizle",gross_note:"bakım, sigorta, kredi ve vergi düşülmemiştir",
+      chip_norm:"{m} normaline göre %{p}",agree:["3 model aynı yönde","Modeller arasında fark var","Modeller çok farklı, belirsiz"],agree_tip:"ECMWF, ICON ve GFS hava modellerinin 24 saatlik üretim tahminleri: {lo}–{hi} MWh. Fark büyüdükçe tahmine daha az güvenin.",
+      w_now:"Şimdi ({h})",w_at:"{d}, saat {h}",tile_wind:"{w} rüzgar",tile_wind_sub:"{kw} kW güç · ICON {i} · GFS {g}",
+      tile_e:"24 saat üretim",tile_e_sub:"modeller {lo}–{hi} MWh",tile_rev:"24 saat brüt satış",price:"fiyat",tile_hrs:"Üretimde geçen saat",tile_hrs_sub:"rotor 3 m/s üzerinde dönüyor",
+      b_title:"En verimli 3 saat",b_text:"{a}–{b} arası, ortalama {v} m/s, yaklaşık {e} MWh.",nodata:"Yeterli veri yok.",
+      s_title:"Güçlü saatler",s_yes:"{n} saat 10 m/s üzerinde; türbin bu saatlerde nominal güce yakın çalışır.",s_no:"10 m/s üzerine çıkan saat yok; nominal güce ulaşılmaz.",
+      q_title:"Durgun saatler",q_yes:"{n} saat üretim yok (rüzgar 3 m/s altında). Bakım için uygun pencere: {w}.",q_no:"Her saat üretim var.",run:"{d} {a}–{b} ({n} saat)",
+      today:"bugün",range:"aralık",klei:"bin lei",
+      wk_e:"7 gün toplam <b>{e} MWh</b>",wk_m:"modeller <b>{lo}–{hi}</b>",wk_lei:"brüt satış <b>{lei} lei</b> ({lo}–{hi})",wk_p:"normale göre <b>%{p}</b>",
+      t_title:"Saat saat · {d}",r_title:"Rüzgar yönü · {d}",r_note:"Baskın yön <b>{d}</b>, {n} saat. Koyu dilim daha çok enerji demek.",
+      power_axis:"Güç (kW) · 0–2000",tabs:["24 saat","48 saat","7 gün"],
+      c_title:"Rüzgarın önümüzdeki seyri",c_desc:"Üstte 105 m rüzgar hızı, altta türbinin vereceği güç. Grafiğe dokunarak saat seçin.",
+      lg_e:"ECMWF (ana tahmin)",lg_band:"Üç modelin aralığı",lg_cut:"Başlama 4 m/s",
+      n_title:"Önümüzdeki 24 saat",n_desc:"ECMWF tahmininden çıkan kısa özet.",r_sub:"Seçili günde rüzgarın hangi yönden kaç saat estiği.",
+      w_title:"7 günlük üretim",w_desc:"Çubuk, günün üretimini ayın normaline göre gösterir; ince çizgi normal günü işaretler. Bir güne dokunun.",
+      t_desc:"Bir satıra dokunarak o saati seçin. Güç ve gelir ECMWF tahminine göredir.",
+      th_h:"Saat",th_rew:"Rotor eşdeğeri",th_kw:"Güç (kW)",th_lei:"Brüt satış (lei)",th_dir:"Yön",
+      f1:"<b>Veri.</b> Open-Meteo üzerinden ECMWF IFS 0,25°, DWD ICON ve NOAA GFS. Model noktası 47,00 K 28,75 D; saha 46,893 K 28,695 D.",
+      f2:"<b>Saha düzeltmesi.</b> Modeller sahayı ~12 km'lik ızgarayla görür ve Pojăreni sırtındaki hızlanmayı kaçırır. Rüzgar hızları ×1,14 ile düzeltilir. Bu katsayı, 10 yıllık ERA5 verisinden çıkan yıllık üretimi 4,65 GWh'ye (Global Wind Atlas, ERA5 ve Tempelfelde'deki gerçek üretimle yapılan kontrolün ortası) eşitler.",
+      f3:"<b>Hesap.</b> 10–180 m rüzgar profilinden rotorun 60–150 m aralığındaki enerji eşdeğeri hız bulunur, hava yoğunluğu 1,198 kg/m³ için düzeltilir ve V90-2.0 MW güç eğrisinden (OEDB) güce çevrilir. MWh toplamlarında %92 net verim uygulanır. Aylık normaller 2015–2024 ERA5 ortalamasıdır.",
+      f4:"Bu bir hava tahminidir, sayaç verisi değildir. Modeller birbirinden ayrıldığında aralık genişler; o günler için tahmine daha az güvenin.",
+      price_aria:"Satış fiyatı, lei/kWh"},
+    en:{loc:"en-GB",
+      days:["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],mon:["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+      month:["January","February","March","April","May","June","July","August","September","October","November","December"],
+      c16:["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"],c8:["N","NE","E","SE","S","SW","W","NW"],
+      brand:"Ecosolaris Wind Panel",live:"Live · updated <b>{t}</b> · refreshes hourly",stale:"<b>Forecast out of date</b> · ",saved:"Saved data · <b>{t}</b>",
+      h_stale:"This forecast has expired.",h_strong:"Strong wind, high output.",h_good:"Good wind for production.",h_mid:"Moderate wind, partial output.",h_weak:"Weak wind, low output.",
+      h_text:"Over the next 24 hours the wind at 105 m averages <b>{v} m/s</b>. Expected output <b>{e} MWh</b> (models {lo}–{hi}), about <b>{lei} lei</b> ({llo}–{lhi} lei).",h_text0:"Over the next 24 hours the wind at 105 m averages <b>{v} m/s</b>. Expected output <b>{e} MWh</b> (models {lo}–{hi}), capacity factor {cf}%.",h_lei:" Gross sales value ≈{lei} lei ({llo}–{lhi}), before costs.",tile_cf:"Capacity factor, 24 h",tile_cf_sub:"of 2 MW rated · models {lo}–{hi}%",show_lei:"Show gross sales",hide_lei:"Hide sales",gross_note:"before maintenance, insurance, loan and tax",
+      chip_norm:"{p}% of a normal {m} day",agree:["3 models agree","Models differ","Models differ widely, uncertain"],agree_tip:"24-hour output from the ECMWF, ICON and GFS weather models: {lo}–{hi} MWh. The wider the gap, the less certain the forecast.",
+      w_now:"now ({h})",w_at:"{d}, {h}",tile_wind:"Wind · {w}",tile_wind_sub:"{kw} kW power · ICON {i} · GFS {g}",
+      tile_e:"Output, next 24 h",tile_e_sub:"models {lo}–{hi} MWh",tile_rev:"Gross sales, next 24 h",price:"price",tile_hrs:"Hours producing",tile_hrs_sub:"rotor turning above 3 m/s",
+      b_title:"Best 3 hours",b_text:"{a}–{b}, average {v} m/s, about {e} MWh.",nodata:"Not enough data.",
+      s_title:"Strong hours",s_yes:"{n} hours above 10 m/s; the turbine runs close to rated power.",s_no:"No hours above 10 m/s; rated power is not reached.",
+      q_title:"Calm hours",q_yes:"{n} hours without output (wind below 3 m/s). Best maintenance window: {w}.",q_no:"Output every hour.",run:"{d} {a}–{b} ({n} h)",
+      today:"today",range:"range",klei:"k lei",
+      wk_e:"7-day total <b>{e} MWh</b>",wk_m:"models <b>{lo}–{hi}</b>",wk_lei:"gross sales <b>{lei} lei</b> ({lo}–{hi})",wk_p:"<b>{p}%</b> of normal",
+      t_title:"Hour by hour · {d}",r_title:"Wind direction · {d}",r_note:"Prevailing <b>{d}</b>, {n} h. Darker slices carry more energy.",
+      power_axis:"Power (kW) · 0–2000",tabs:["24 h","48 h","7 days"],
+      c_title:"Wind outlook",c_desc:"Top: wind speed at 105 m. Bottom: turbine power. Tap the chart to pick an hour.",
+      lg_e:"ECMWF (main forecast)",lg_band:"Range of three models",lg_cut:"Cut-in 4 m/s",
+      n_title:"Next 24 hours",n_desc:"Short summary from the ECMWF forecast.",r_sub:"How many hours the wind blows from each direction on the selected day.",
+      w_title:"7-day production",w_desc:"The bar shows the day's output against the monthly normal; the thin line marks a normal day. Tap a day.",
+      t_desc:"Tap a row to select that hour. Power and revenue follow the ECMWF forecast.",
+      th_h:"Hour",th_rew:"Rotor-equivalent",th_kw:"Power (kW)",th_lei:"Gross sales (lei)",th_dir:"Direction",
+      f1:"<b>Data.</b> ECMWF IFS 0.25°, DWD ICON and NOAA GFS via Open-Meteo. Model grid point 47.00 N 28.75 E; site 46.893 N 28.695 E.",
+      f2:"<b>Site correction.</b> The models see the site on a ~12 km grid and miss the speed-up over the Pojăreni ridge. Wind speeds are multiplied by 1.14. This factor makes ten years of ERA5 data give 4.65 GWh a year, the middle of our check against Global Wind Atlas, ERA5 and the turbine's real output at Tempelfelde.",
+      f3:"<b>Method.</b> From the 10–180 m wind profile we take the energy-equivalent speed over the rotor (60–150 m), correct it for air density 1.198 kg/m³ and convert it with the V90-2.0 MW power curve (OEDB). MWh totals include 92% net efficiency. Monthly normals are 2015–2024 ERA5 averages.",
+      f4:"This is a weather forecast, not meter data. When the models disagree the range widens; trust those days less.",
+      price_aria:"Selling price, lei/kWh"},
+    ro:{loc:"ro-RO",
+      days:["Dum","Lun","Mar","Mie","Joi","Vin","Sâm"],mon:["ian","feb","mar","apr","mai","iun","iul","aug","sep","oct","noi","dec"],
+      month:["ianuarie","februarie","martie","aprilie","mai","iunie","iulie","august","septembrie","octombrie","noiembrie","decembrie"],
+      c16:["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSV","SV","VSV","V","VNV","NV","NNV"],c8:["N","NE","E","SE","S","SV","V","NV"],
+      brand:"Panou eolian Ecosolaris",live:"În direct · actualizat <b>{t}</b> · se reîmprospătează orar",stale:"<b>Prognoză expirată</b> · ",saved:"Date salvate · <b>{t}</b>",
+      h_stale:"Această prognoză a expirat.",h_strong:"Vânt puternic, producție mare.",h_good:"Vânt favorabil pentru producție.",h_mid:"Vânt moderat, producție parțială.",h_weak:"Vânt slab, producție redusă.",
+      h_text:"În următoarele 24 de ore vântul la 105 m are în medie <b>{v} m/s</b>. Producție estimată <b>{e} MWh</b> (modele {lo}–{hi}), aproximativ <b>{lei} lei</b> ({llo}–{lhi} lei).",h_text0:"În următoarele 24 de ore vântul la 105 m are în medie <b>{v} m/s</b>. Producție estimată <b>{e} MWh</b> (modele {lo}–{hi}), factor de capacitate {cf}%.",h_lei:" Valoare brută a vânzărilor ≈{lei} lei ({llo}–{lhi}), înainte de costuri.",tile_cf:"Factor de capacitate, 24 h",tile_cf_sub:"din 2 MW nominal · modele {lo}–{hi}%",show_lei:"Arată vânzările brute",hide_lei:"Ascunde vânzările",gross_note:"înainte de mentenanță, asigurare, credit și taxe",
+      chip_norm:"{p}% față de o zi normală de {m}",agree:["Cele 3 modele concordă","Modelele diferă","Modelele diferă mult, incert"],agree_tip:"Producția pe 24 h după modelele ECMWF, ICON și GFS: {lo}–{hi} MWh. Cu cât diferența e mai mare, cu atât prognoza e mai incertă.",
+      w_now:"acum ({h})",w_at:"{d}, ora {h}",tile_wind:"Vânt · {w}",tile_wind_sub:"{kw} kW putere · ICON {i} · GFS {g}",
+      tile_e:"Producție, 24 h",tile_e_sub:"modele {lo}–{hi} MWh",tile_rev:"Vânzări brute, 24 h",price:"preț",tile_hrs:"Ore în producție",tile_hrs_sub:"rotorul se rotește peste 3 m/s",
+      b_title:"Cele mai bune 3 ore",b_text:"{a}–{b}, medie {v} m/s, aproximativ {e} MWh.",nodata:"Date insuficiente.",
+      s_title:"Ore cu vânt puternic",s_yes:"{n} ore peste 10 m/s; turbina funcționează aproape de puterea nominală.",s_no:"Nicio oră peste 10 m/s; puterea nominală nu este atinsă.",
+      q_title:"Ore fără vânt",q_yes:"{n} ore fără producție (vânt sub 3 m/s). Fereastră potrivită pentru mentenanță: {w}.",q_no:"Producție în fiecare oră.",run:"{d} {a}–{b} ({n} ore)",
+      today:"azi",range:"interval",klei:"mii lei",
+      wk_e:"Total 7 zile <b>{e} MWh</b>",wk_m:"modele <b>{lo}–{hi}</b>",wk_lei:"vânzări brute <b>{lei} lei</b> ({lo}–{hi})",wk_p:"<b>{p}%</b> față de normal",
+      t_title:"Oră cu oră · {d}",r_title:"Direcția vântului · {d}",r_note:"Direcție dominantă <b>{d}</b>, {n} ore. Feliile mai închise aduc mai multă energie.",
+      power_axis:"Putere (kW) · 0–2000",tabs:["24 h","48 h","7 zile"],
+      c_title:"Evoluția vântului",c_desc:"Sus: viteza vântului la 105 m. Jos: puterea turbinei. Atingeți graficul pentru a alege o oră.",
+      lg_e:"ECMWF (prognoza principală)",lg_band:"Intervalul celor trei modele",lg_cut:"Pornire 4 m/s",
+      n_title:"Următoarele 24 de ore",n_desc:"Rezumat scurt din prognoza ECMWF.",r_sub:"Câte ore bate vântul din fiecare direcție în ziua selectată.",
+      w_title:"Producția pe 7 zile",w_desc:"Bara arată producția zilei față de normala lunii; linia subțire marchează o zi normală. Atingeți o zi.",
+      t_desc:"Atingeți un rând pentru a selecta ora. Puterea și venitul urmează prognoza ECMWF.",
+      th_h:"Ora",th_rew:"Echivalent rotor",th_kw:"Putere (kW)",th_lei:"Vânzări brute (lei)",th_dir:"Direcție",
+      f1:"<b>Date.</b> ECMWF IFS 0,25°, DWD ICON și NOAA GFS prin Open-Meteo. Punctul modelului 47,00 N 28,75 E; amplasament 46,893 N 28,695 E.",
+      f2:"<b>Corecția amplasamentului.</b> Modelele văd amplasamentul pe o rețea de ~12 km și ratează accelerarea vântului pe dealul de la Pojăreni. Vitezele sunt înmulțite cu 1,14. Factorul face ca zece ani de date ERA5 să dea 4,65 GWh pe an, mijlocul verificării noastre cu Global Wind Atlas, ERA5 și producția reală a turbinei la Tempelfelde.",
+      f3:"<b>Calcul.</b> Din profilul vântului 10–180 m se obține viteza echivalentă energetic pe rotor (60–150 m), corectată pentru densitatea aerului 1,198 kg/m³ și transformată cu curba de putere V90-2.0 MW (OEDB). Totalurile MWh includ un randament net de 92%. Normalele lunare sunt medii ERA5 2015–2024.",
+      f4:"Aceasta este o prognoză meteo, nu date de contor. Când modelele nu concordă, intervalul se lărgește; aveți mai puțină încredere în acele zile.",
+      price_aria:"Preț de vânzare, lei/kWh"}
+  };
+  var LANG="tr";
+  (function(){var h=(location.hash||"").replace("#","").toLowerCase();if(I18N[h]){LANG=h;return}try{var s=localStorage.getItem("eco_lang");if(I18N[s])LANG=s}catch(e){}})();
+  function L(){return I18N[LANG]}
+  function t(k,v){var s=L()[k]!=null?L()[k]:I18N.tr[k];if(v)s=String(s).replace(/\{(\w+)\}/g,function(m,n){return v[n]!=null?v[n]:m});return s}
+
+  var SHOWLEI=false;
+  var D=null,C={},T=[],N=0,NOW=0,STALE=false,sel=0,range=24,dayIdx=0,DAYS=[],price=CFG.price,LIVE=false,FETCHED="",LAST=0;
   try{var sp=parseFloat(localStorage.getItem("eco_price"));if(sp>0&&sp<20)price=sp}catch(e){}
   try{var sr=parseInt(localStorage.getItem("eco_range"),10);if(sr===24||sr===48||sr===168)range=sr}catch(e){}
 
   function $(id){return document.getElementById(id)}
-  function fmt(n,d){return (isFinite(n)?n:0).toLocaleString("tr-TR",{minimumFractionDigits:d,maximumFractionDigits:d})}
-  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+  function fmt(n,d){return (isFinite(n)?n:0).toLocaleString(L().loc,{minimumFractionDigits:d,maximumFractionDigits:d})}
   function pw(v){if(!(v>=3)||v>25)return 0;for(var k=0;k<PC.length-1;k++){var a=PC[k],b=PC[k+1];if(v<=b[0])return a[1]+(b[1]-a[1])*(v-a[0])/(b[0]-a[0])}return 0}
-  function compass(d){return ["K","KKD","KD","DKD","D","DGD","GD","GGD","G","GGB","GB","BGB","B","BKB","KB","KKB"][Math.round(((d%360)+360)%360/22.5)%16]}
+  function compass(d){return L().c16[Math.round(((d%360)+360)%360/22.5)%16]}
   function clamp(x,a,b){return Math.min(Math.max(x,a),b)}
 
-  /* rüzgar profili: verilen seviyeler arasında üs yasası, üstte son iki seviyenin kesmesiyle uzatma */
   function profile(lv){
     return function(z){
       for(var k=0;k<lv.length-1;k++){
@@ -220,15 +317,15 @@ td.e{color:var(--accent)} td.i{color:var(--m2)} td.g{color:var(--m3)}
     N=D.time.length;C={};
     MODELS.forEach(function(m){
       var src=D[m];if(!src)return;
-      var hub=[],rew=[],kw=[],v100=[];
+      var hub=[],rew=[],kw=[];
       for(var i=0;i<N;i++){
         var lv=[];[["10m",10],["80m",80],["100m",100],["120m",120],["180m",180]].forEach(function(p){var a=src[p[0]];if(a&&a[i]!=null)lv.push([p[1],a[i]*CFG.site])});
-        if(lv.length<2){hub.push(null);rew.push(null);kw.push(0);v100.push(null);continue}
+        if(lv.length<2){hub.push(null);rew.push(null);kw.push(0);continue}
         var u=profile(lv),h=u(CFG.hub),s=0,w=0;
         SLICES.forEach(function(sl){var x=u(sl[0]);s+=sl[1]*x*x*x;w+=sl[1]});
-        var r=Math.cbrt(s/w);hub.push(h);rew.push(r);kw.push(pw(r*DENS));v100.push(u(100));
+        var r=Math.cbrt(s/w);hub.push(h);rew.push(r);kw.push(pw(r*DENS));
       }
-      C[m]={hub:hub,rew:rew,kw:kw,v100:v100,dir:src.dir||[]};
+      C[m]={hub:hub,rew:rew,kw:kw,dir:src.dir||[]};
     });
     DAYS=[];var cur=null;
     for(var i=0;i<N;i++){var dk=T[i].slice(0,10);if(!cur||cur.key!==dk){cur={key:dk,idx:[]};DAYS.push(cur)}cur.idx.push(i)}
@@ -249,84 +346,86 @@ td.e{color:var(--accent)} td.i{color:var(--m2)} td.g{color:var(--m3)}
   function wd(s){var p=parseT(s);return new Date(Date.UTC(p.y,p.mo,p.d)).getUTCDay()}
   function pad(n){return n<10?"0"+n:""+n}
   function hh(i){return T[i].slice(11,16)}
-  function dayLabel(i){var p=parseT(T[i]);return DAYN[wd(T[i])]+" "+p.d}
-  function dayLong(i){var p=parseT(T[i]);return DAYN[wd(T[i])]+" "+p.d+" "+MONN[p.mo]}
-  function stamp(s){if(!s)return"—";var p=parseT(s);return p.d+" "+MONN[p.mo]+" "+pad(p.h)+":"+pad(p.mi)}
+  function dayLabel(i){var p=parseT(T[i]);return L().days[wd(T[i])]+" "+p.d}
+  function dayLong(i){var p=parseT(T[i]);return L().days[wd(T[i])]+" "+p.d+" "+L().mon[p.mo]}
+  function stamp(s){if(!s)return"—";var p=parseT(s);return p.d+" "+L().mon[p.mo]+" "+pad(p.h)+":"+pad(p.mi)}
   function normFor(i){return CFG.norm[parseT(T[i]).mo]}
-  function avg(a,f,t){var s=0,c=0;for(var i=f;i<t&&i<N;i++){if(a[i]!=null){s+=a[i];c++}}return c?s/c:0}
-  function energy(m,f,t){var s=0,k=C[m]?C[m].kw:[];for(var i=f;i<t&&i<N;i++)s+=k[i]||0;return s/1000*CFG.net}
-  function erange(f,t){var v=MODELS.filter(function(m){return C[m]}).map(function(m){return energy(m,f,t)});return {min:Math.min.apply(null,v),max:Math.max.apply(null,v),all:v}}
+  function avg(a,f,t2){var s=0,c=0;for(var i=f;i<t2&&i<N;i++){if(a[i]!=null){s+=a[i];c++}}return c?s/c:0}
+  function energy(m,f,t2){var s=0,k=C[m]?C[m].kw:[];for(var i=f;i<t2&&i<N;i++)s+=k[i]||0;return s/1000*CFG.net}
+  function erange(f,t2){var v=MODELS.filter(function(m){return C[m]}).map(function(m){return energy(m,f,t2)});return {min:Math.min.apply(null,v),max:Math.max.apply(null,v),all:v}}
   function lei(mwh){return mwh*1000*price}
-  function agree(f,t){
-    var r=erange(f,t),mean=r.all.reduce(function(a,b){return a+b},0)/r.all.length,sp=(r.max-r.min)/Math.max(mean,0.5*(t-f)/24);
-    return sp<0.3?{t:"Modeller uyumlu",c:"good",s:sp}:sp<0.6?{t:"Modeller kısmen ayrışıyor",c:"mid",s:sp}:{t:"Modeller ayrışıyor, belirsiz",c:"bad",s:sp};
+  function agree(f,t2){
+    var r=erange(f,t2),mean=r.all.reduce(function(a,b){return a+b},0)/r.all.length,sp=(r.max-r.min)/Math.max(mean,0.5*(t2-f)/24);
+    var k=sp<0.3?0:sp<0.6?1:2;return {t:L().agree[k]+(k?" · "+fmt(r.min,0)+"–"+fmt(r.max,0)+" MWh":""),c:["good","mid","bad"][k],tip:t("agree_tip",{lo:fmt(r.min,1),hi:fmt(r.max,1)})};
   }
 
+  function applyStatic(){
+    document.documentElement.lang=LANG;
+    Array.prototype.forEach.call(document.querySelectorAll("[data-i]"),function(el){el.innerHTML=t(el.getAttribute("data-i"))});
+    Array.prototype.forEach.call($("lang").querySelectorAll("button"),function(b){b.setAttribute("aria-pressed",String(b.getAttribute("data-l")===LANG))});
+    document.title=t("brand");
+    var th=$("th-lei");if(th)th.hidden=!SHOWLEI;
+  }
   function status(){
-    var el=$("status");el.className="status"+(LIVE?" live":"");
-    $("st-text").innerHTML=LIVE?"Canlı · <b>"+esc(stamp(FETCHED))+"</b> güncellendi · saat başı yenilenir":(STALE?"<b>Tahmin eskidi</b> · ":"")+"Kayıtlı veri · <b>"+esc(stamp(FETCHED))+"</b>";
+    $("status").className="status"+(LIVE?" live":"");
+    $("st-text").innerHTML=LIVE?t("live",{t:stamp(FETCHED)}):(STALE?t("stale"):"")+t("saved",{t:stamp(FETCHED)});
   }
   function hero(){
-    var e=C.e,to=Math.min(NOW+24,N),m=avg(e.hub,NOW,to),r=erange(NOW,to),eE=energy("e",NOW,to),nm=normFor(NOW)*(to-NOW)/24,pct=nm>0?eE/nm*100:0,t;
-    if(STALE){t="Bu tahminin süresi doldu.";}
-    else if(m>=8)t="Güçlü rüzgar, yüksek üretim.";
-    else if(m>=6)t="Üretim için elverişli rüzgar.";
-    else if(m>=4.5)t="Orta rüzgar, kısmi üretim.";
-    else t="Zayıf rüzgar, düşük üretim.";
-    $("h-title").textContent=t;
-    $("h-text").innerHTML="Önümüzdeki 24 saatte 105 m'de ortalama <b>"+fmt(m,1)+" m/s</b>. Tahmini üretim <b>"+fmt(eE,1)+" MWh</b> (modeller "+fmt(r.min,1)+"–"+fmt(r.max,1)+"), yaklaşık <b>"+fmt(lei(eE),0)+" lei</b>.";
+    var e=C.e,to=Math.min(NOW+24,N),m=avg(e.hub,NOW,to),r=erange(NOW,to),eE=energy("e",NOW,to),nm=normFor(NOW)*(to-NOW)/24,pct=nm>0?eE/nm*100:0;
+    var k=STALE?"h_stale":m>=8?"h_strong":m>=6?"h_good":m>=4.5?"h_mid":"h_weak";
+    $("h-title").textContent=t(k);
+    $("h-text").innerHTML=t("h_text0",{v:fmt(m,1),e:fmt(eE,1),lo:fmt(r.min,1),hi:fmt(r.max,1),cf:fmt(eE/(2*(to-NOW))*100,0)})+(SHOWLEI?t("h_lei",{lei:fmt(lei(eE),0),llo:fmt(lei(r.min),0),lhi:fmt(lei(r.max),0)}):"");
     var ag=agree(NOW,to);
-    $("h-chips").innerHTML='<span class="chip '+(pct>=110?"good":pct>=70?"":"mid")+'">'+MONL[parseT(T[NOW]).mo]+' normaline göre %'+fmt(pct,0)+'</span><span class="chip '+ag.c+'">'+ag.t+'</span><span class="chip">'+fmt(price,2)+' lei/kWh</span>';
-    var h=e.hub[sel]||0;$("rotor").style.setProperty("--spin",(e.kw[sel]>0?Math.max(1.4,22/Math.max(h,1)):60)+"s");
+    $("h-chips").innerHTML='<span class="chip '+(pct>=110?"good":pct>=70?"":"mid")+'">'+t("chip_norm",{m:L().month[parseT(T[NOW]).mo],p:fmt(pct,0)})+'</span><span class="chip '+ag.c+'" title="'+ag.tip+'" tabindex="0">'+ag.t+'</span>'+(SHOWLEI?'<span class="chip">'+fmt(price,2)+' lei/kWh</span>':'');
+    var hv=e.hub[sel]||0;$("rotor").style.setProperty("--spin",(e.kw[sel]>0?Math.max(1.4,22/Math.max(hv,1)):60)+"s");
   }
   function tiles(){
     var e=C.e,to=Math.min(NOW+24,N),eE=energy("e",NOW,to),r=erange(NOW,to),ok=0;
     for(var i=NOW;i<to;i++)if(e.kw[i]>0)ok++;
-    var selL=sel===NOW?"Şimdi ("+hh(sel)+")":dayLabel(sel)+", saat "+hh(sel);
-    var t=[
-      [selL+" rüzgar",fmt(e.hub[sel],1),"m/s",fmt(e.kw[sel],0)+" kW güç · ICON "+fmt(C.i?C.i.hub[sel]:0,1)+" · GFS "+fmt(C.g?C.g.hub[sel]:0,1)],
-      ["24 saat üretim",fmt(eE,1),"MWh","modeller "+fmt(r.min,1)+"–"+fmt(r.max,1)+" MWh"],
-      ["24 saat gelir",fmt(lei(eE),0),"lei",'fiyat <input id="price" type="number" min="0" max="20" step="0.01" value="'+price.toFixed(2)+'" aria-label="Satış fiyatı, lei/kWh"> lei/kWh'],
-      ["Üretimde geçen saat",String(ok),"/ "+(to-NOW),"rotor 3 m/s üzerinde dönüyor"]
+    var w=sel===NOW?t("w_now",{h:hh(sel)}):t("w_at",{d:dayLabel(sel),h:hh(sel)});
+    var tl=[
+      [t("tile_wind",{w:w}),fmt(e.hub[sel],1),"m/s",t("tile_wind_sub",{kw:fmt(e.kw[sel],0),i:fmt(C.i?C.i.hub[sel]:0,1),g:fmt(C.g?C.g.hub[sel]:0,1)})],
+      [t("tile_e"),fmt(eE,1),"MWh",t("tile_e_sub",{lo:fmt(r.min,1),hi:fmt(r.max,1)})],
+      [t("tile_rev"),fmt(lei(eE),0),"lei",t("tile_e_sub",{lo:fmt(lei(r.min),0),hi:fmt(lei(r.max),0)}).replace("MWh","lei")+' · '+t("gross_note")+'<br>'+t("price")+' <input id="price" type="number" min="0" max="20" step="0.01" value="'+price.toFixed(2)+'" aria-label="'+t("price_aria")+'"> lei/kWh'],
+      [t("tile_cf"),fmt(eE/(2*(to-NOW))*100,0),"%",t("tile_cf_sub",{lo:fmt(r.min/(2*(to-NOW))*100,0),hi:fmt(r.max/(2*(to-NOW))*100,0)})+'<br>'+t("tile_hrs")+': '+ok+' / '+(to-NOW)]
     ];
-    $("tiles").innerHTML=t.map(function(a){return '<div class="tile"><div class="l">'+esc(a[0])+'</div><div class="v">'+a[1]+'<small>'+a[2]+'</small></div><div class="s">'+a[3]+'</div></div>'}).join("");
-    var pi=$("price");pi.addEventListener("change",function(){var v=parseFloat(pi.value.replace(",","."));if(v>0&&v<20){price=v;try{localStorage.setItem("eco_price",String(v))}catch(e){}renderAll()}});
+    $("tiles").innerHTML=tl.map(function(a){return '<div class="tile"><div class="l">'+a[0]+'</div><div class="v">'+a[1]+'<small>'+a[2]+'</small></div><div class="s">'+a[3]+'</div></div>'}).join("");
+    var pi=$("price");if(pi)pi.addEventListener("change",function(){var v=parseFloat(String(pi.value).replace(",","."));if(v>0&&v<20){price=v;try{localStorage.setItem("eco_price",String(v))}catch(e){}renderAll()}});
+  }
+  function longestRun(a){
+    if(!a.length)return"—";var bs=a[0],bl=1,cs=a[0],cl=1;
+    for(var k=1;k<a.length;k++){if(a[k]===a[k-1]+1){cl++}else{cs=a[k];cl=1}if(cl>bl){bl=cl;bs=cs}}
+    return t("run",{d:dayLabel(bs),a:hh(bs),b:hh(Math.min(bs+bl,N-1)),n:bl});
   }
   function three(){
     var e=C.e,to=Math.min(NOW+24,N),best=-1,bm=-1;
     for(var i=NOW;i+3<=to;i++){var m=avg(e.hub,i,i+3);if(m>bm){bm=m;best=i}}
     var strong=[],low=[];for(var j=NOW;j<to;j++){if(e.hub[j]>=10)strong.push(j);if(e.kw[j]<=0)low.push(j)}
-    var s1=best<0?"Yeterli veri yok.":hh(best)+"–"+hh(Math.min(best+3,N-1))+" arası, ortalama "+fmt(bm,1)+" m/s, yaklaşık "+fmt(energy("e",best,best+3),1)+" MWh.";
-    var s2=strong.length?strong.length+" saat 10 m/s üzerinde; türbin bu saatlerde nominal güce yakın çalışır.":"10 m/s üzerine çıkan saat yok; nominal güce ulaşılmaz.";
-    var s3=low.length?low.length+" saat üretim yok (rüzgar 3 m/s altında). Bakım için uygun pencere: "+longestRun(low)+".":"Her saat üretim var.";
-    $("three").innerHTML='<div class="info"><b>En verimli 3 saat</b><span>'+s1+'</span></div><div class="info"><b>Güçlü saatler</b><span>'+s2+'</span></div><div class="info"><b>Durgun saatler</b><span>'+s3+'</span></div>';
-  }
-  function longestRun(a){
-    if(!a.length)return"—";var bs=a[0],bl=1,cs=a[0],cl=1;
-    for(var k=1;k<a.length;k++){if(a[k]===a[k-1]+1){cl++}else{cs=a[k];cl=1}if(cl>bl){bl=cl;bs=cs}}
-    return dayLabel(bs)+" "+hh(bs)+"–"+hh(Math.min(bs+bl,N-1))+" ("+bl+" saat)";
+    var s1=best<0?t("nodata"):t("b_text",{a:hh(best),b:hh(Math.min(best+3,N-1)),v:fmt(bm,1),e:fmt(energy("e",best,best+3),1)});
+    var s2=strong.length?t("s_yes",{n:strong.length}):t("s_no");
+    var s3=low.length?t("q_yes",{n:low.length,w:longestRun(low)}):t("q_no");
+    $("three").innerHTML='<div class="info"><b>'+t("b_title")+'</b><span>'+s1+'</span></div><div class="info"><b>'+t("s_title")+'</b><span>'+s2+'</span></div><div class="info"><b>'+t("q_title")+'</b><span>'+s3+'</span></div>';
   }
   function days(){
     var h="",tot=0,totN=0,lo=0,hi=0;
     DAYS.forEach(function(d,k){
-      var f=d.idx[0],t=d.idx[d.idx.length-1]+1,e=energy("e",f,t),r=erange(f,t),nm=normFor(f)*(t-f)/24,mx=0;
+      var f=d.idx[0],t2=d.idx[d.idx.length-1]+1,e=energy("e",f,t2),r=erange(f,t2),nm=normFor(f)*(t2-f)/24;
       tot+=e;totN+=nm;lo+=r.min;hi+=r.max;
-      for(var i=f;i<t;i++)if(C.e.hub[i]>mx)mx=C.e.hub[i];
       var scale=Math.max(nm*2.2,1),w=Math.min(100,e/scale*100),nx=Math.min(100,nm/scale*100);
-      h+='<button type="button" class="day" data-d="'+k+'" aria-pressed="'+(k===dayIdx)+'"><div class="n">'+dayLabel(f)+(f<=NOW&&NOW<t?" · bugün":"")+'</div><div class="w">'+fmt(e,1)+'<small> MWh</small></div><div class="m">aralık '+fmt(r.min,1)+'–'+fmt(r.max,1)+'</div><div class="m">'+fmt(lei(e)/1000,1)+' bin lei · '+fmt(avg(C.e.hub,f,t),1)+' m/s</div><div class="b"><i style="width:'+w+'%"></i><u style="left:'+nx+'%"></u></div></button>';
+      h+='<button type="button" class="day" data-d="'+k+'" aria-pressed="'+(k===dayIdx)+'"><div class="n">'+dayLabel(f)+(f<=NOW&&NOW<t2?" · "+t("today"):"")+'</div><div class="w">'+fmt(e,1)+'<small> MWh</small></div><div class="m">'+t("range")+' '+fmt(r.min,1)+'–'+fmt(r.max,1)+'</div><div class="m">'+(SHOWLEI?fmt(lei(r.min)/1000,1)+'–'+fmt(lei(r.max)/1000,1)+' '+t("klei")+' · ':(LANG==="tr"?'%'+fmt(e/(2*(t2-f))*100,0):fmt(e/(2*(t2-f))*100,0)+'%')+' · ')+fmt(avg(C.e.hub,f,t2),1)+' m/s</div><div class="b"><i style="width:'+w+'%"></i><u style="left:'+nx+'%"></u></div></button>';
     });
     $("days").innerHTML=h;
     var pct=totN>0?tot/totN*100:0;
-    $("week").innerHTML='<span>7 gün toplam <b>'+fmt(tot,1)+' MWh</b></span><span>modeller <b>'+fmt(lo,1)+'–'+fmt(hi,1)+'</b></span><span>gelir <b>'+fmt(lei(tot),0)+' lei</b></span><span>normale göre <b>%'+fmt(pct,0)+'</b></span>';
+    $("week").innerHTML='<span>'+t("wk_e",{e:fmt(tot,1)})+'</span><span>'+t("wk_m",{lo:fmt(lo,1),hi:fmt(hi,1)})+'</span>'+(SHOWLEI?'<span>'+t("wk_lei",{lei:fmt(lei(tot),0),lo:fmt(lei(lo),0),hi:fmt(lei(hi),0)})+'</span>':'')+'<span>'+t("wk_p",{p:fmt(pct,0)})+'</span>';
     Array.prototype.forEach.call($("days").querySelectorAll("button"),function(b){
       b.addEventListener("click",function(){dayIdx=+b.getAttribute("data-d");var d=DAYS[dayIdx];sel=(NOW>=d.idx[0]&&NOW<=d.idx[d.idx.length-1])?NOW:d.idx[Math.min(12,d.idx.length-1)];renderSel();table();rose()});
     });
   }
   function table(){
     var d=DAYS[dayIdx];if(!d)return;var h="";
-    $("t-title").textContent="Saat saat · "+dayLong(d.idx[0]);
+    $("t-title").textContent=t("t_title",{d:dayLong(d.idx[0])});
     d.idx.forEach(function(i){
-      h+='<tr tabindex="0" data-i="'+i+'"'+(i===sel?' class="sel"':'')+'><td>'+hh(i)+(i===NOW?" ◂":"")+'</td><td class="e">'+fmt(C.e.hub[i],1)+'</td><td class="i">'+(C.i?fmt(C.i.hub[i],1):"–")+'</td><td class="g">'+(C.g?fmt(C.g.hub[i],1):"–")+'</td><td>'+fmt(C.e.rew[i],1)+' m/s</td><td>'+fmt(C.e.kw[i],0)+'</td><td>'+fmt(C.e.kw[i]*CFG.net*price,0)+'</td><td>'+compass(C.e.dir[i])+' '+Math.round(C.e.dir[i])+'°</td></tr>';
+      h+='<tr tabindex="0" data-i="'+i+'"'+(i===sel?' class="sel"':'')+'><td>'+hh(i)+(i===NOW?" ◂":"")+'</td><td class="e">'+fmt(C.e.hub[i],1)+'</td><td class="i">'+(C.i?fmt(C.i.hub[i],1):"–")+'</td><td class="g">'+(C.g?fmt(C.g.hub[i],1):"–")+'</td><td>'+fmt(C.e.rew[i],1)+' m/s</td><td>'+fmt(C.e.kw[i],0)+'</td>'+(SHOWLEI?'<td>'+fmt(C.e.kw[i]*CFG.net*price,0)+'</td>':'')+'<td>'+compass(C.e.dir[i])+' '+Math.round(C.e.dir[i])+'°</td></tr>';
     });
     $("rows").innerHTML=h;
     Array.prototype.forEach.call($("rows").querySelectorAll("tr"),function(tr){
@@ -336,23 +435,23 @@ td.e{color:var(--accent)} td.i{color:var(--m2)} td.g{color:var(--m3)}
   }
   function rose(){
     var d=DAYS[dayIdx];if(!d)return;
-    var bins=new Array(8).fill(0),ebin=new Array(8).fill(0);
-    d.idx.forEach(function(i){var b=Math.round((((C.e.dir[i]%360)+360)%360)/45)%8;bins[b]++;ebin[b]+=C.e.kw[i]})
-    var mx=Math.max.apply(null,bins)||1,cx=110,cy=110,R=78,s='<svg viewBox="0 0 220 220" role="img" aria-label="Rüzgar yönü dağılımı">';
+    var bins=[0,0,0,0,0,0,0,0],ebin=[0,0,0,0,0,0,0,0];
+    d.idx.forEach(function(i){var b=Math.round((((C.e.dir[i]%360)+360)%360)/45)%8;bins[b]++;ebin[b]+=C.e.kw[i]});
+    var mx=Math.max.apply(null,bins)||1,emx=Math.max(1,Math.max.apply(null,ebin)),cx=110,cy=110,R=78,s='<svg viewBox="0 0 220 220" role="img" aria-label="'+t("r_sub")+'">';
     [0.33,0.66,1].forEach(function(f){s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(R*f)+'" fill="none" stroke="var(--line)"/>'});
-    var lab=["K","KD","D","GD","G","GB","B","KB"];
+    var lab=L().c8;
     for(var b=0;b<8;b++){
       var a0=(b*45-20)*Math.PI/180,a1=(b*45+20)*Math.PI/180,r=bins[b]/mx*R;
-      if(r>0){s+='<path d="M'+cx+' '+cy+' L'+(cx+r*Math.sin(a0))+' '+(cy-r*Math.cos(a0))+' A'+r+' '+r+' 0 0 1 '+(cx+r*Math.sin(a1))+' '+(cy-r*Math.cos(a1))+' Z" fill="var(--accent)" opacity="'+(0.35+0.6*(ebin[b]/Math.max(1,Math.max.apply(null,ebin))))+'"/>'}
+      if(r>0)s+='<path d="M'+cx+' '+cy+' L'+(cx+r*Math.sin(a0))+' '+(cy-r*Math.cos(a0))+' A'+r+' '+r+' 0 0 1 '+(cx+r*Math.sin(a1))+' '+(cy-r*Math.cos(a1))+' Z" fill="var(--accent)" opacity="'+(0.35+0.6*(ebin[b]/emx))+'"/>';
       var la=b*45*Math.PI/180;s+='<text x="'+(cx+(R+16)*Math.sin(la))+'" y="'+(cy-(R+16)*Math.cos(la)+4)+'" text-anchor="middle" style="fill:var(--fg)">'+lab[b]+'</text>';
     }
     var top=bins.indexOf(Math.max.apply(null,bins));
-    s+='</svg>';
-    $("rose").innerHTML=s+'<div class="d" style="margin:0;text-align:center">Baskın yön <b>'+lab[top]+'</b>, '+bins[top]+' saat. Koyu dilim daha çok enerji demek.</div>';
-    $("r-title").textContent="Rüzgar yönü · "+dayLabel(d.idx[0]);
+    $("rose").innerHTML=s+'</svg><div class="d" style="margin:0;text-align:center">'+t("r_note",{d:lab[top],n:bins[top]})+'</div>';
+    $("r-title").textContent=t("r_title",{d:dayLabel(d.idx[0])});
   }
   function tabs(){
-    $("tabs").innerHTML=[[24,"24 saat"],[48,"48 saat"],[168,"7 gün"]].map(function(r){return '<button type="button" data-r="'+r[0]+'" aria-pressed="'+(r[0]===range)+'">'+r[1]+'</button>'}).join("");
+    var lb=L().tabs;
+    $("tabs").innerHTML=[[24,lb[0]],[48,lb[1]],[168,lb[2]]].map(function(r){return '<button type="button" data-r="'+r[0]+'" aria-pressed="'+(r[0]===range)+'">'+r[1]+'</button>'}).join("");
     Array.prototype.forEach.call($("tabs").querySelectorAll("button"),function(b){b.addEventListener("click",function(){range=+b.getAttribute("data-r");try{localStorage.setItem("eco_range",String(range))}catch(e){}tabs();chart()})});
   }
   function chart(){
@@ -362,23 +461,23 @@ td.e{color:var(--accent)} td.i{color:var(--m2)} td.g{color:var(--m3)}
     var X=function(i){return m.l+(i-from)/Math.max(n-1,1)*iw};
     var all=[];MODELS.forEach(function(k){if(C[k])for(var i=from;i<to;i++)all.push(C[k].hub[i]||0)});
     var ymax=Math.max(12,Math.ceil(Math.max.apply(null,all)+1));
-    var Yw=function(v){return m.t+top-v/ymax*top},y0=m.t+top+gap,Yp=function(k){return y0+bh-k/2000*bh};
-    var s='<svg id="svg" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="105 m rüzgar hızı ve türbin gücü">';
+    var Yw=function(v){return m.t+top-v/ymax*top},y0=m.t+top+gap;
+    var s='<svg id="svg" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+t("c_title")+'">';
     var gs=ymax>16?4:2;
     for(var g=0;g<=ymax;g+=gs){var y=Yw(g);s+='<line x1="'+m.l+'" x2="'+(W-m.r)+'" y1="'+y+'" y2="'+y+'" stroke="var(--line)"/><text x="'+(m.l-6)+'" y="'+(y+4)+'" text-anchor="end">'+g+'</text>'}
     s+='<text x="2" y="9">m/s</text>';
-    for(var t=from+1;t<to;t++){if(hh(t)==="00:00")s+='<line x1="'+X(t)+'" x2="'+X(t)+'" y1="'+m.t+'" y2="'+(y0+bh)+'" stroke="var(--line)" stroke-dasharray="2 3"/>'}
+    for(var q0=from+1;q0<to;q0++){if(hh(q0)==="00:00")s+='<line x1="'+X(q0)+'" x2="'+X(q0)+'" y1="'+m.t+'" y2="'+(y0+bh)+'" stroke="var(--line)" stroke-dasharray="2 3"/>'}
     s+='<line x1="'+m.l+'" x2="'+(W-m.r)+'" y1="'+Yw(4)+'" y2="'+Yw(4)+'" stroke="var(--low)" stroke-width="1.2" stroke-dasharray="4 4"/>';
     var up=[],dn=[];
     for(var i=from;i<to;i++){var v=MODELS.filter(function(k){return C[k]&&C[k].hub[i]!=null}).map(function(k){return C[k].hub[i]});up.push(X(i)+","+Yw(Math.max.apply(null,v)));dn.unshift(X(i)+","+Yw(Math.min.apply(null,v)))}
     s+='<polygon points="'+up.join(" ")+" "+dn.join(" ")+'" fill="var(--band)" opacity=".14"/>';
-    ["g","i"].forEach(function(k){if(!C[k])return;var p=[];for(var i=from;i<to;i++)p.push(X(i)+","+Yw(C[k].hub[i]||0));s+='<polyline points="'+p.join(" ")+'" fill="none" stroke="'+MCOL[k]+'" stroke-width="1.3" opacity=".85" stroke-dasharray="'+(k==="g"?"5 3":"none")+'"/>'});
-    var pe=[];for(var i2=from;i2<to;i2++)pe.push(X(i2)+","+Yw(C.e.hub[i2]||0));
+    ["g","i"].forEach(function(k){if(!C[k])return;var p=[];for(var i2=from;i2<to;i2++)p.push(X(i2)+","+Yw(C[k].hub[i2]||0));s+='<polyline points="'+p.join(" ")+'" fill="none" stroke="'+MCOL[k]+'" stroke-width="1.3" opacity=".85" stroke-dasharray="'+(k==="g"?"5 3":"none")+'"/>'});
+    var pe=[];for(var i3=from;i3<to;i3++)pe.push(X(i3)+","+Yw(C.e.hub[i3]||0));
     s+='<polyline points="'+pe.join(" ")+'" fill="none" stroke="var(--accent)" stroke-width="2.6" stroke-linejoin="round"/>';
     var bw=Math.max(iw/n*0.72,1);
-    for(var j=from;j<to;j++){var k2=C.e.kw[j],h2=k2/2000*bh;s+='<rect x="'+(X(j)-bw/2)+'" y="'+(y0+bh-h2)+'" width="'+bw+'" height="'+h2+'" fill="var(--accent)" opacity="'+(j<NOW?0.35:0.8)+'"/>'}
+    for(var j=from;j<to;j++){var h2=C.e.kw[j]/2000*bh;s+='<rect x="'+(X(j)-bw/2)+'" y="'+(y0+bh-h2)+'" width="'+bw+'" height="'+h2+'" fill="var(--accent)" opacity="'+(j<NOW?0.35:0.8)+'"/>'}
     s+='<line x1="'+m.l+'" x2="'+(W-m.r)+'" y1="'+(y0+bh)+'" y2="'+(y0+bh)+'" stroke="var(--line)"/>';
-    s+='<text x="'+m.l+'" y="'+(y0-7)+'">Güç (kW) · 0–2000</text>';
+    s+='<text x="'+m.l+'" y="'+(y0-7)+'">'+t("power_axis")+'</text>';
     var step=range===24?3:range===48?6:24;
     for(var q=from;q<to;q++){
       var hr=+hh(q).slice(0,2),show=range===168?hr===12:hr%step===0;
@@ -394,12 +493,22 @@ td.e{color:var(--accent)} td.i{color:var(--m2)} td.g{color:var(--m3)}
     s+='<rect x="'+m.l+'" y="0" width="'+iw+'" height="'+H+'" fill="transparent"/></svg>';
     el.innerHTML=s;
     var svg=$("svg");
-    function pick(ev){var r=svg.getBoundingClientRect(),x=(ev.clientX-r.left)/r.width*W,i=Math.round(from+(x-m.l)/iw*(n-1));i=clamp(i,from,to-1);if(i!==sel){sel=i;var di=DAYS.findIndex(function(d){return d.idx.indexOf(i)>=0});if(di>=0&&di!==dayIdx){dayIdx=di;days();table();rose()}renderSel()}}
+    function pick(ev){var rc=svg.getBoundingClientRect(),x=(ev.clientX-rc.left)/rc.width*W,ii=Math.round(from+(x-m.l)/iw*(n-1));ii=clamp(ii,from,to-1);if(ii!==sel){sel=ii;var di=DAYS.findIndex(function(d){return d.idx.indexOf(ii)>=0});if(di>=0&&di!==dayIdx){dayIdx=di;days();table();rose()}renderSel()}}
     svg.addEventListener("pointermove",function(e){if(e.pointerType==="mouse")pick(e)});
     svg.addEventListener("click",pick);
   }
   function renderSel(){tiles();hero();chart();Array.prototype.forEach.call($("rows").querySelectorAll("tr"),function(tr){tr.className=(+tr.getAttribute("data-i")===sel)?"sel":""});Array.prototype.forEach.call($("days").querySelectorAll("button"),function(b){b.setAttribute("aria-pressed",String(+b.getAttribute("data-d")===dayIdx))})}
-  function renderAll(){status();tabs();hero();tiles();three();days();table();rose();chart()}
+  function renderAll(){applyStatic();status();if(!D)return;tabs();hero();tiles();three();days();table();rose();chart()}
+
+  Array.prototype.forEach.call($("lang").querySelectorAll("button"),function(b){
+    b.addEventListener("click",function(){
+      LANG=b.getAttribute("data-l");
+      try{localStorage.setItem("eco_lang",LANG)}catch(e){}
+      try{history.replaceState(null,"",LANG==="tr"?location.pathname+location.search:"#"+LANG)}catch(e){}
+      renderAll();
+    });
+  });
+  window.addEventListener("hashchange",function(){var h=location.hash.replace("#","").toLowerCase();if(I18N[h]&&h!==LANG){LANG=h;renderAll()}});
 
   function useData(d,live,fetched){
     D=d;T=d.time;LIVE=live;FETCHED=fetched;compute();findNow();
@@ -407,14 +516,14 @@ td.e{color:var(--accent)} td.i{color:var(--m2)} td.g{color:var(--m3)}
     renderAll();
   }
   function fromEmbed(E){
-    var t=[],p=parseT(E.start),base=Date.UTC(p.y,p.mo,p.d,p.h);
-    for(var i=0;i<E.e["100m"].length;i++){var dt=new Date(base+i*3600e3);t.push(dt.getUTCFullYear()+"-"+pad(dt.getUTCMonth()+1)+"-"+pad(dt.getUTCDate())+"T"+pad(dt.getUTCHours())+":00")}
-    return {time:t,e:E.e,i:E.i,g:E.g};
+    var tt=[],p=parseT(E.start),base=Date.UTC(p.y,p.mo,p.d,p.h);
+    for(var i=0;i<E.e["100m"].length;i++){var dt=new Date(base+i*3600e3);tt.push(dt.getUTCFullYear()+"-"+pad(dt.getUTCMonth()+1)+"-"+pad(dt.getUTCDate())+"T"+pad(dt.getUTCHours())+":00")}
+    return {time:tt,e:E.e,i:E.i,g:E.g};
   }
   function fromApi(j){
     var h=j.hourly,map={e:"ecmwf_ifs025",i:"icon_seamless",g:"gfs_seamless"},o={time:h.time};
     MODELS.forEach(function(m){var x={};["10m","80m","100m","120m","180m"].forEach(function(l){var a=h["wind_speed_"+l+"_"+map[m]];if(a&&a.some(function(v){return v!=null}))x[l]=a});x.dir=h["wind_direction_100m_"+map[m]]||[];if(x["100m"])o[m]=x});
-    if(!o.e)throw new Error("ECMWF yok");
+    if(!o.e)throw new Error("no ECMWF");
     return o;
   }
   function load(){
@@ -425,11 +534,12 @@ td.e{color:var(--accent)} td.i{color:var(--m2)} td.g{color:var(--m3)}
     }).catch(function(){clearTimeout(tm);status()});
   }
 
+  applyStatic();
   if(EMBED)useData(fromEmbed(EMBED),false,EMBED.fetched);
   load();
   setInterval(load,60*60*1000);
-  setInterval(function(){var o=NOW;findNow();if(o!==NOW){if(sel===o)sel=NOW;renderAll()}},60*1000);
-  var tmr;window.addEventListener("resize",function(){clearTimeout(tmr);tmr=setTimeout(chart,120)});
+  setInterval(function(){if(!D)return;var o=NOW;findNow();if(o!==NOW){if(sel===o)sel=NOW;renderAll()}},60*1000);
+  var tmr;window.addEventListener("resize",function(){clearTimeout(tmr);tmr=setTimeout(function(){if(D)chart()},120)});
   document.addEventListener("visibilitychange",function(){if(!document.hidden&&Date.now()-LAST>15*60*1000)load()});
 })();
 </script>

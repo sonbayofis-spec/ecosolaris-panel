@@ -32,19 +32,19 @@ L = {
            "month": ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"],
            "dirs": ["K", "KD", "D", "GD", "G", "GB", "B", "KB"],
            "now": "Şimdi", "next3": "Sonraki 3 saat", "h24": "24 saat", "models": "modeller",
-           "norm": "{m} normaline göre %{p}", "agree": ["modeller uyumlu", "modeller kısmen ayrışıyor", "modeller ayrışıyor, belirsiz"],
+           "norm": "{m} normaline göre %{p}", "agree": ["3 model aynı yönde", "modeller arasında fark var", "modeller çok farklı, belirsiz"],
            "stop": "Üretimsiz saat (24 saatte): {n}", "link": "Paneli aç", "dec": ","},
     "en": {"mon": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
            "month": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
            "dirs": ["N", "NE", "E", "SE", "S", "SW", "W", "NW"],
            "now": "Now", "next3": "Next 3 hours", "h24": "Next 24 h", "models": "models",
-           "norm": "{p}% of a normal {m} day", "agree": ["models agree", "models partly diverge", "models diverge, uncertain"],
+           "norm": "{p}% of a normal {m} day", "agree": ["3 models agree", "models differ", "models differ widely, uncertain"],
            "stop": "Hours without output (next 24 h): {n}", "link": "Open panel", "dec": "."},
     "ro": {"mon": ["ian", "feb", "mar", "apr", "mai", "iun", "iul", "aug", "sep", "oct", "noi", "dec"],
            "month": ["ianuarie", "februarie", "martie", "aprilie", "mai", "iunie", "iulie", "august", "septembrie", "octombrie", "noiembrie", "decembrie"],
            "dirs": ["N", "NE", "E", "SE", "S", "SV", "V", "NV"],
            "now": "Acum", "next3": "Următoarele 3 ore", "h24": "Următoarele 24 h", "models": "modele",
-           "norm": "{p}% față de o zi normală de {m}", "agree": ["modelele concordă", "modelele diferă parțial", "modelele diferă, incert"],
+           "norm": "{p}% față de o zi normală de {m}", "agree": ["cele 3 modele concordă", "modelele diferă", "modelele diferă mult, incert"],
            "stop": "Ore fără producție (24 h): {n}", "link": "Deschide panoul", "dec": ","},
 }
 
@@ -105,7 +105,7 @@ def summary(h, now, price):
     spread = (hi - lo) / max(sum(e24.values()) / len(e24), 0.5)
     return {
         "i0": i0, "hub": hub[i0], "kw": kw[i0], "next": [hub[j] for j in range(i0 + 1, min(i0 + 4, len(t)))],
-        "e": e24["e"], "lo": lo, "hi": hi, "lei": e24["e"] * 1000 * price,
+        "e": e24["e"], "lo": lo, "hi": hi, "lei": e24["e"] * 1000 * price, "llo": lo * 1000 * price, "lhi": hi * 1000 * price,
         "pct": e24["e"] / NORM[now.month - 1] * 100, "agree": 0 if spread < 0.3 else 1 if spread < 0.6 else 2,
         "dir": round((h[f"wind_direction_100m_{MODELS['e']}"][i0] % 360) / 45) % 8,
         "stop": sum(1 for j in range(i0, i1) if kw[j] <= 0),
@@ -121,7 +121,7 @@ def text_for(s, now, lang, head=True):
     out += [
         f"{x['now']}: <b>{f(s['hub'])} m/s</b> ({x['dirs'][s['dir']]}) → <b>{f(s['kw'], 0)} kW</b>",
         f"{x['next3']}: {' / '.join(f(v) for v in s['next'])} m/s",
-        f"{x['h24']}: <b>{f(s['e'])} MWh</b> ({x['models']} {f(s['lo'])}–{f(s['hi'])}) · ≈{f(s['lei'], 0)} lei",
+        f"{x['h24']}: <b>{f(s['e'])} MWh</b> ({x['models']} {f(s['lo'])}–{f(s['hi'])}) · ≈{f(s['lei'], 0)} lei ({f(s['llo'], 0)}–{f(s['lhi'], 0)})",
         x["norm"].format(m=x["month"][now.month - 1], p=f(s["pct"], 0)) + " · " + x["agree"][s["agree"]],
     ]
     if s["stop"]:
