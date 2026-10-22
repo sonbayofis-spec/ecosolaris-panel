@@ -201,14 +201,8 @@ table.acct{min-width:420px}
           <g id="bld"><path d="M0 0 C-2.6-6-3.4-15-2.4-25 C-1.6-33-.6-39 .4-43 C1.5-37 3-27 3.3-16 C3.5-8 2.4-3 0 0Z" fill="var(--blade)" stroke="var(--blade-edge)" stroke-width=".7" stroke-linejoin="round"/></g>
         </defs>
         <path d="M-10 214 C60 196 120 204 190 196 S300 186 380 192 L380 250 L-10 250Z" fill="var(--hill)"/>
-        <g transform="translate(118 112) scale(.72)" opacity=".7">
-          <path d="M-2 4 L2 4 L5 135 L-5 135Z" fill="url(#twg)" stroke="var(--blade-edge)" stroke-width=".5"/>
-          <rect x="-3" y="-4.4" width="19" height="8.8" rx="4" fill="var(--blade)" stroke="var(--blade-edge)" stroke-width=".7"/>
-          <g class="rotor" id="rotor2"><circle r="44" fill="none"/><use href="#bld"/><use href="#bld" transform="rotate(120)"/><use href="#bld" transform="rotate(240)"/></g>
-          <circle r="3.8" fill="var(--blade)" stroke="var(--blade-edge)" stroke-width=".8"/>
-        </g>
         <path d="M-10 232 C70 214 150 222 230 214 S330 206 380 210 L380 250 L-10 250Z" fill="var(--hill2)"/>
-        <g transform="translate(262 74) scale(1.18)">
+        <g transform="translate(236 80) scale(1.17)">
           <path d="M-2 4 L2 4 L5.4 135 L-5.4 135Z" fill="url(#twg)" stroke="var(--blade-edge)" stroke-width=".4"/>
           <rect x="-3" y="-4.4" width="19" height="8.8" rx="4" fill="var(--blade)" stroke="var(--blade-edge)" stroke-width=".6"/>
           <g class="rotor" id="rotor"><circle r="44" fill="none"/><use href="#bld"/><use href="#bld" transform="rotate(120)"/><use href="#bld" transform="rotate(240)"/></g>
@@ -457,7 +451,7 @@ table.acct{min-width:420px}
   function spin(rpm){
     $("rpm").innerHTML='<span class="rpml">'+t("rpm_l")+'</span><b>'+(rpm>0?fmt(rpm,1)+" "+t("rpm_u"):t("rpm_stop"))+'</b>';
     var el=$("rotor"),el2=$("rotor2");if(!el||!el.animate)return;
-    if(!ROT){var kf=[{transform:"rotate(0deg)"},{transform:"rotate(360deg)"}];ROT=[el.animate(kf,{duration:1000,iterations:Infinity}),el2.animate(kf,{duration:1000,iterations:Infinity})];ROT[1].currentTime=370}
+    if(!ROT){var kf=[{transform:"rotate(0deg)"},{transform:"rotate(360deg)"}];ROT=[el.animate(kf,{duration:1000,iterations:Infinity})]}
     ROT.forEach(function(a,k){
       if(rpm<=0){a.pause();return}
       var rate=rpm/60*(k?0.94:1);if(a.updatePlaybackRate)a.updatePlaybackRate(rate);else a.playbackRate=rate;
