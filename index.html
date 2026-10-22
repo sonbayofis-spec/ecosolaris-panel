@@ -383,7 +383,7 @@ table.acct{min-width:420px}
     $("rpm").textContent=rpm>0?fmt(rpm,1)+" "+t("rpm_u"):t("rpm_stop");
     var el=$("rotor");if(!el||!el.animate)return;
     if(!ROT){ROT=el.animate([{transform:"rotate(0deg)"},{transform:"rotate(360deg)"}],{duration:1000,iterations:Infinity});}
-    if(RM||rpm<=0){ROT.pause();return}
+    if(rpm<=0){ROT.pause();return}
     var rate=rpm/60;if(ROT.updatePlaybackRate)ROT.updatePlaybackRate(rate);else ROT.playbackRate=rate;
     if(ROT.playState!=="running")ROT.play();
   }
