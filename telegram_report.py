@@ -33,7 +33,7 @@ L = {
            "days": ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"],
            "dirs": ["kuzey", "kuzeydoğu", "doğu", "güneydoğu", "güney", "güneybatı", "batı", "kuzeybatı"],
            "now": "Şimdi", "of_cap": "kapasite %{p}", "next3": "Sonraki saatler", "h24": "Önümüzdeki 24 saat",
-           "expected": "beklenen üretim", "conf": "Tahmin güveni", "levels": ["Yüksek", "Orta", "Düşük"],
+           "expected": "beklenen üretim", "conf": "Tahmin güvenilirliği", "levels": ["Yüksek", "Orta", "Düşük"],
            "times": "{m} ortalamasının {x} katı", "pct": "{m} ortalamasına göre %{p}", "gross": "brüt satış",
            "stop": "{n} saat rüzgâr yetersiz, üretim yok", "link": "Paneli aç", "dec": ","},
     "en": {"mon": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
