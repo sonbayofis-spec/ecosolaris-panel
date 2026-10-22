@@ -6,7 +6,7 @@ paneldeki hesabın aynısıyla V90-2.0 MW üretimini bulur ve Telegram'a gönder
 Gizli değişkenler (Settings -> Secrets and variables -> Actions -> Secrets):
   TELEGRAM_BOT_TOKEN  BotFather'ın verdiği anahtar
   TELEGRAM_CHAT_ID    alıcı(lar): "123456" ya da dil ile "123456:tr,789012:en,-100345:ro"
-                      dil "all" ise tek mesajda üç dil gider (ortak grup için).
+                      dil verilmezse Türkçe gönderilir.
 İsteğe bağlı değişken (Variables): PRICE_LEI (varsayılan 1.42)
 """
 import json, math, os, sys, urllib.parse, urllib.request
@@ -30,24 +30,29 @@ DENS = (RHO / 1.225) ** (1 / 3)
 L = {
     "tr": {"mon": ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"],
            "month": ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"],
-           "dirs": ["K", "KD", "D", "GD", "G", "GB", "B", "KB"],
-           "now": "Şimdi", "next3": "Sonraki 3 saat", "h24": "24 saat", "models": "modeller",
-           "norm": "{m} normaline göre %{p}", "agree": ["3 model aynı yönde", "modeller arasında fark var", "modeller çok farklı, belirsiz"],
-           "stop": "Üretimsiz saat (24 saatte): {n}", "link": "Paneli aç", "dec": ","},
+           "days": ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"],
+           "dirs": ["kuzey", "kuzeydoğu", "doğu", "güneydoğu", "güney", "güneybatı", "batı", "kuzeybatı"],
+           "now": "Şimdi", "of_cap": "kapasite %{p}", "next3": "Sonraki saatler", "h24": "Önümüzdeki 24 saat",
+           "expected": "beklenen üretim", "conf": "Tahmin güveni", "levels": ["Yüksek", "Orta", "Düşük"],
+           "times": "{m} ortalamasının {x} katı", "pct": "{m} ortalamasına göre %{p}", "gross": "brüt satış",
+           "stop": "{n} saat rüzgâr yetersiz, üretim yok", "link": "Paneli aç", "dec": ","},
     "en": {"mon": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
            "month": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
-           "dirs": ["N", "NE", "E", "SE", "S", "SW", "W", "NW"],
-           "now": "Now", "next3": "Next 3 hours", "h24": "Next 24 h", "models": "models",
-           "norm": "{p}% of a normal {m} day", "agree": ["3 models agree", "models differ", "models differ widely, uncertain"],
-           "stop": "Hours without output (next 24 h): {n}", "link": "Open panel", "dec": "."},
+           "days": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+           "dirs": ["north", "north-east", "east", "south-east", "south", "south-west", "west", "north-west"],
+           "now": "Now", "of_cap": "{p}% of capacity", "next3": "Next hours", "h24": "Next 24 hours",
+           "expected": "expected output", "conf": "Forecast confidence", "levels": ["High", "Medium", "Low"],
+           "times": "{x}× a normal {m} day", "pct": "{p}% of a normal {m} day", "gross": "gross sales",
+           "stop": "{n} h too calm to produce", "link": "Open panel", "dec": "."},
     "ro": {"mon": ["ian", "feb", "mar", "apr", "mai", "iun", "iul", "aug", "sep", "oct", "noi", "dec"],
            "month": ["ianuarie", "februarie", "martie", "aprilie", "mai", "iunie", "iulie", "august", "septembrie", "octombrie", "noiembrie", "decembrie"],
-           "dirs": ["N", "NE", "E", "SE", "S", "SV", "V", "NV"],
-           "now": "Acum", "next3": "Următoarele 3 ore", "h24": "Următoarele 24 h", "models": "modele",
-           "norm": "{p}% față de o zi normală de {m}", "agree": ["cele 3 modele concordă", "modelele diferă", "modelele diferă mult, incert"],
-           "stop": "Ore fără producție (24 h): {n}", "link": "Deschide panoul", "dec": ","},
+           "days": ["Lun", "Mar", "Mie", "Joi", "Vin", "Sâm", "Dum"],
+           "dirs": ["nord", "nord-est", "est", "sud-est", "sud", "sud-vest", "vest", "nord-vest"],
+           "now": "Acum", "of_cap": "{p}% din capacitate", "next3": "Orele următoare", "h24": "Următoarele 24 de ore",
+           "expected": "producție estimată", "conf": "Încredere în prognoză", "levels": ["ridicată", "medie", "scăzută"],
+           "times": "de {x} ori o zi normală de {m}", "pct": "{p}% dintr-o zi normală de {m}", "gross": "vânzări brute",
+           "stop": "{n} ore fără vânt suficient", "link": "Deschide panoul", "dec": ","},
 }
-
 
 def pw(v):
     if not v or v < 3 or v > 25:
@@ -104,49 +109,56 @@ def summary(h, now, price):
     lo, hi = min(e24.values()), max(e24.values())
     spread = (hi - lo) / max(sum(e24.values()) / len(e24), 0.5)
     return {
-        "i0": i0, "hub": hub[i0], "kw": kw[i0], "next": [hub[j] for j in range(i0 + 1, min(i0 + 4, len(t)))],
+        "hub": hub[i0], "kw": kw[i0],
+        "next": [(t[j][11:16], hub[j], kw[j]) for j in range(i0 + 1, min(i0 + 4, len(t)))],
         "e": e24["e"], "lo": lo, "hi": hi, "lei": e24["e"] * 1000 * price, "llo": lo * 1000 * price, "lhi": hi * 1000 * price,
-        "pct": e24["e"] / NORM[now.month - 1] * 100, "agree": 0 if spread < 0.3 else 1 if spread < 0.6 else 2,
+        "ratio": e24["e"] / NORM[now.month - 1], "agree": 0 if spread < 0.3 else 1 if spread < 0.6 else 2,
         "dir": round((h[f"wind_direction_100m_{MODELS['e']}"][i0] % 360) / 45) % 8,
         "stop": sum(1 for j in range(i0, i1) if kw[j] <= 0),
     }
 
 
-def text_for(s, now, lang, head=True):
-    x = L[lang]
-    f = lambda v, d=1: fmt(v, d, lang)
-    out = []
-    if head:
-        out.append(f"<b>Ecosolaris · {now.day} {x['mon'][now.month - 1]} {now:%H}:00</b>")
-    out += [
-        f"{x['now']}: <b>{f(s['hub'])} m/s</b> ({x['dirs'][s['dir']]}) → <b>{f(s['kw'], 0)} kW</b>",
-        f"{x['next3']}: {' / '.join(f(v) for v in s['next'])} m/s",
-        f"{x['h24']}: <b>{f(s['e'])} MWh</b> ({x['models']} {f(s['lo'])}–{f(s['hi'])}) · ≈{f(s['lei'], 0)} lei ({f(s['llo'], 0)}–{f(s['lhi'], 0)})",
-        x["norm"].format(m=x["month"][now.month - 1], p=f(s["pct"], 0)) + " · " + x["agree"][s["agree"]],
-    ]
-    if s["stop"]:
-        out.append(x["stop"].format(n=s["stop"]))
-    return out
+def bar(frac, n=10):
+    k = max(0, min(n, round(frac * n)))
+    return "▰" * k + "▱" * (n - k)
 
 
 def message(s, now, lang):
-    if lang == "all":
-        parts = [f"<b>Ecosolaris · {now.day:02d}.{now.month:02d} {now:%H}:00</b>"]
-        for lg, flag in (("tr", "🇹🇷"), ("en", "🇬🇧"), ("ro", "🇲🇩")):
-            parts.append("")
-            parts.append(flag)
-            parts += text_for(s, now, lg, head=False)
-        parts += ["", f'<a href="{PANEL}">Panel</a>']
-        return "\n".join(parts)
     lang = lang if lang in L else "tr"
+    x = L[lang]
+    f = lambda v, d=1: fmt(v, d, lang)
+    r100 = lambda v: f(round(v / 100) * 100, 0)
+    cap = s["kw"] / 2000 * 100
+    month = x["month"][now.month - 1]
+    rel = (x["times"].format(m=month, x=f(s["ratio"], 1)) if s["ratio"] >= 1.15
+           else x["pct"].format(m=month, p=f(s["ratio"] * 100, 0)))
+    conf_icon = ["🟢", "🟡", "🔴"][s["agree"]]
+    rows = "\n".join(f"{hh}  {f(v):>5} m/s  {f(k, 0):>5} kW" for hh, v, k in s["next"])
     hash_ = "" if lang == "tr" else "#" + lang
-    return "\n".join(text_for(s, now, lang) + [f'<a href="{PANEL}{hash_}">{L[lang]["link"]}</a>'])
-
+    out = [
+        f"🌬 <b>Ecosolaris</b> · {x['days'][now.weekday()]} {now.day} {x['mon'][now.month - 1]}, {now:%H}:00",
+        "",
+        f"<b>{x['now']}</b>: {f(s['hub'])} m/s, {x['dirs'][s['dir']]}",
+        f"⚡ <b>{f(s['kw'], 0)} kW</b>  {bar(s['kw'] / 2000)}  {x['of_cap'].format(p=f(cap, 0))}",
+        "",
+        f"<b>{x['next3']}</b>",
+        f"<pre>{rows}</pre>",
+        f"<b>{x['h24']}</b>",
+        f"📈 <b>{f(s['e'])} MWh</b> {x['expected']}",
+        f"{conf_icon} {x['conf']}: {x['levels'][s['agree']]} ({f(s['lo'], 0)}–{f(s['hi'], 0)} MWh)",
+        f"📅 {rel}",
+        f"💰 ≈{r100(s['lei'])} lei {x['gross']} ({r100(s['llo'])}–{r100(s['lhi'])})",
+    ]
+    if s["stop"]:
+        out.append(f"⏸ {x['stop'].format(n=s['stop'])}")
+    out += ["", f'<a href="{PANEL}{hash_}">{x["link"]} →</a>']
+    return "\n".join(out)
 
 def send(token, chat, text, quiet):
-    body = urllib.parse.urlencode({"chat_id": chat, "text": text, "parse_mode": "HTML",
-                                   "disable_web_page_preview": "true",
-                                   "disable_notification": "true" if quiet else "false"}).encode()
+    fields = {"chat_id": chat, "text": text, "parse_mode": "HTML", "disable_web_page_preview": "true"}
+    if quiet:
+        fields["disable_notification"] = "true"
+    body = urllib.parse.urlencode(fields).encode()
     r = json.load(urllib.request.urlopen(f"https://api.telegram.org/bot{token}/sendMessage", data=body, timeout=30))
     return r.get("ok", False)
 
@@ -160,7 +172,7 @@ def main():
     s = summary(h, now, price)
     quiet = now.hour >= 23 or now.hour < 7
     if not token or not chats:
-        print(message(s, now, "all"))
+        print(message(s, now, "tr"))
         print("TELEGRAM_BOT_TOKEN veya TELEGRAM_CHAT_ID eksik; mesaj gönderilmedi.", file=sys.stderr)
         return 1
     failed = 0
