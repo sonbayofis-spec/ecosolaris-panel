@@ -2,7 +2,7 @@ name: Telegram saat başı rapor
 
 on:
   schedule:
-    - cron: "2 * * * *"
+    - cron: "41 * * * *"
   workflow_dispatch:
 
 jobs:
