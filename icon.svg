@@ -1,1 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><rect width="120" height="120" rx="24" fill="#10292F"/><path d="M57 50 L63 50 L66 108 L54 108 Z" fill="#93B0AA"/><g fill="#3FC3A8"><path d="M60 46 L57 42 L60 12 L63 42 Z"/><path d="M60 46 L57 42 L60 12 L63 42 Z" transform="rotate(120 60 46)"/><path d="M60 46 L57 42 L60 12 L63 42 Z" transform="rotate(240 60 46)"/></g><circle cx="60" cy="46" r="5" fill="#E6F2EF"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1F6F5C"/><stop offset="1" stop-color="#0F3D33"/></linearGradient>
+    <linearGradient id="tw" x1="0" x2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#BFD3CD"/></linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <path d="M248 200 L264 200 L276 448 L236 448 Z" fill="url(#tw)"/>
+  <rect x="246" y="168" width="64" height="30" rx="14" fill="#F4F8F7"/>
+  <g transform="rotate(18 256 184)" fill="#FFFFFF" stroke="#BFD3CD" stroke-width="2" stroke-linejoin="round">
+    <path id="b" d="M256 184 C246 160 243 124 247 84 C250 54 254 34 258 18 C263 40 269 80 270 120 C271 152 266 172 256 184 Z"/>
+    <use href="#b" transform="rotate(120 256 184)"/>
+    <use href="#b" transform="rotate(240 256 184)"/>
+  </g>
+  <circle cx="256" cy="184" r="15" fill="#F4F8F7" stroke="#BFD3CD" stroke-width="3"/>
+</svg>

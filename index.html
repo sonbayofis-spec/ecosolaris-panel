@@ -7,7 +7,7 @@
 :root{
   --bg:#EEF3F1; --panel:#FFFFFF; --fg:#10292F; --muted:#56706F; --line:#D5E0DD;
   --accent:#12806E; --accent-soft:#D9EEE8; --m2:#7B4FB8; --m3:#2F6FB5; --low:#C27A1A; --bad:#B4412F; --good:#12806E;
-  --hero:#E3F1EC; --top:#10292F; --top-fg:#E6F2EF; --top-muted:#93B0AA; --band:#12806E;
+  --hero:#E3F1EC; --blade:#FFFFFF; --blade-edge:#8FA6A0; --tower-a:#FFFFFF; --tower-b:#C3D2CE; --top:#10292F; --top-fg:#E6F2EF; --top-muted:#93B0AA; --band:#12806E;
   --font-sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   --font-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
 }
@@ -15,13 +15,13 @@
   :root:not([data-theme="light"]){
     --bg:#0A1715; --panel:#112420; --fg:#E2EFEB; --muted:#8CA8A2; --line:#203833;
     --accent:#3FC3A8; --accent-soft:#12372F; --m2:#B79BEA; --m3:#7FB0F0; --low:#E0A24A; --bad:#E58470; --good:#3FC3A8;
-    --hero:#12302A; --top:#06100E; --top-fg:#E2EFEB; --top-muted:#7C9B94; --band:#3FC3A8; color-scheme:dark;
+    --hero:#12302A; --blade:#E4EFEC; --blade-edge:#6F8C86; --tower-a:#D6E3DF; --tower-b:#8FA6A0; --top:#06100E; --top-fg:#E2EFEB; --top-muted:#7C9B94; --band:#3FC3A8; color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
   --bg:#0A1715; --panel:#112420; --fg:#E2EFEB; --muted:#8CA8A2; --line:#203833;
   --accent:#3FC3A8; --accent-soft:#12372F; --m2:#B79BEA; --m3:#7FB0F0; --low:#E0A24A; --bad:#E58470; --good:#3FC3A8;
-  --hero:#12302A; --top:#06100E; --top-fg:#E2EFEB; --top-muted:#7C9B94; --band:#3FC3A8; color-scheme:dark;
+  --hero:#12302A; --blade:#E4EFEC; --blade-edge:#6F8C86; --tower-a:#D6E3DF; --tower-b:#8FA6A0; --top:#06100E; --top-fg:#E2EFEB; --top-muted:#7C9B94; --band:#3FC3A8; color-scheme:dark;
 }
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--fg);font-family:var(--font-sans);font-size:15px;line-height:1.5}
@@ -46,10 +46,10 @@ main{padding-block:18px 56px;display:flex;flex-direction:column;gap:16px}
 .chip.good{color:var(--good);border-color:var(--good)}
 .chip.mid{color:var(--low);border-color:var(--low)}
 .chip.bad{color:var(--bad);border-color:var(--bad)}
-.turb{width:110px;height:130px;flex:none}
-@keyframes spin{to{transform:rotate(360deg)}}
-.rotor{transform-origin:60px 40px;animation:spin var(--spin,6s) linear infinite}
-@media (prefers-reduced-motion:reduce){.rotor{animation:none}}
+.turbw{display:flex;flex-direction:column;align-items:center;gap:2px;flex:none}
+.turb{width:116px;height:154px}
+.rotor{transform-box:view-box;transform-origin:60px 46px}
+.rpm{white-space:nowrap;font-family:var(--font-mono);font-size:11.5px;color:var(--muted);min-height:16px}
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
 .tile{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;min-width:0}
 .tile .l{font-size:12.5px;color:var(--muted)}
@@ -102,7 +102,7 @@ tr.sel td{background:var(--accent-soft)!important}
 td.e{color:var(--accent)} td.i{color:var(--m2)} td.g{color:var(--m3)}
 .foot{font-size:12.5px;color:var(--muted);display:flex;flex-direction:column;gap:6px;max-width:90ch}
 .foot b{color:var(--fg);font-weight:500}
-@media (max-width:560px){.hero{grid-template-columns:1fr}.turb{display:none}}
+@media (max-width:560px){.hero{grid-template-columns:1fr 72px;align-items:start;padding:18px 16px}.turb{width:72px;height:96px}.rpm{font-size:10px}}
 .lang{display:inline-flex;border:1px solid var(--top-muted);border-radius:5px;overflow:hidden}
 .lang button{font:inherit;font-family:var(--font-mono);font-size:12px;color:var(--top-muted);background:transparent;border:0;padding:3px 9px;cursor:pointer}
 .lang button[aria-pressed="true"]{background:var(--top-fg);color:var(--top)}
@@ -129,15 +129,22 @@ table.acct{min-width:420px}
       <p id="h-text"></p>
       <div class="chips" id="h-chips"></div>
     </div>
-    <svg class="turb" viewBox="0 0 120 140" aria-hidden="true">
-      <path d="M57 44 L63 44 L66 132 L54 132 Z" fill="var(--muted)" opacity=".55"/>
+    <div class="turbw" aria-hidden="true">
+    <svg class="turb" viewBox="0 0 120 160">
+      <defs><linearGradient id="twg" x1="0" x2="1"><stop offset="0" stop-color="var(--tower-a)"/><stop offset="1" stop-color="var(--tower-b)"/></linearGradient></defs>
+      <ellipse cx="60" cy="156" rx="30" ry="2.6" fill="var(--muted)" opacity=".2"/>
+      <path d="M58 50 L62 50 L65.2 156 L54.8 156 Z" fill="url(#twg)" stroke="var(--blade-edge)" stroke-width=".4"/>
+      <rect x="57" y="41.6" width="19" height="8.8" rx="4" fill="var(--blade)" stroke="var(--blade-edge)" stroke-width=".6"/>
       <g class="rotor" id="rotor">
-        <path d="M60 40 L57 36 L60 -2 L63 36 Z" fill="var(--accent)"/>
-        <path d="M60 40 L57 36 L60 -2 L63 36 Z" fill="var(--accent)" transform="rotate(120 60 40)"/>
-        <path d="M60 40 L57 36 L60 -2 L63 36 Z" fill="var(--accent)" transform="rotate(240 60 40)"/>
+        <path id="bl" d="M60 46 C57.4 40 56.6 31 57.6 21 C58.4 13 59.4 7 60.4 3 C61.5 9 63 19 63.3 30 C63.5 38 62.4 43 60 46 Z" fill="var(--blade)" stroke="var(--blade-edge)" stroke-width=".6" stroke-linejoin="round"/>
+        <use href="#bl" transform="rotate(120 60 46)"/>
+        <use href="#bl" transform="rotate(240 60 46)"/>
       </g>
-      <circle cx="60" cy="40" r="5" fill="var(--fg)"/>
+      <circle cx="60" cy="46" r="3.7" fill="var(--blade)" stroke="var(--blade-edge)" stroke-width=".7"/>
+      <circle cx="60" cy="46" r="1.2" fill="var(--blade-edge)"/>
     </svg>
+    <div class="rpm" id="rpm"></div>
+    </div>
   </section>
 
   <section class="tiles" id="tiles"></section>
@@ -213,7 +220,7 @@ table.acct{min-width:420px}
       days:["Paz","Pzt","Sal","Çar","Per","Cum","Cmt"],mon:["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"],
       month:["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"],
       c16:["K","KKD","KD","DKD","D","DGD","GD","GGD","G","GGB","GB","BGB","B","BKB","KB","KKB"],c8:["K","KD","D","GD","G","GB","B","KB"],
-      brand:"Ecosolaris Rüzgar Paneli",acc_title:"Tahminler ne kadar tuttu · son 7 gün",acc_desc:"Her gün, bir gün önceden yapılan rüzgâr tahmini Kişinev havalimanında (10 m) ölçülen gerçek rüzgârla karşılaştırılır.",acc_day:"Gün",acc_obs:"Ölçülen",acc_bias:"ortalama sapma",acc_mae:"saatlik ortalama hata {v} m/s",acc_best:"en isabetli",acc_note:"Sapma eksiyse model rüzgârı olduğundan zayıf, artıysa güçlü tahmin etmiş. Rakamlar günlük ortalama rüzgâr (m/s). Güncelleme: {t}.",live:"Canlı · <b>{t}</b> güncellendi · saat başı yenilenir",stale:"<b>Tahmin eskidi</b> · ",saved:"Kayıtlı veri · <b>{t}</b>",
+      brand:"Ecosolaris Rüzgar Paneli",rpm_u:"dev/dk",rpm_stop:"duruyor",acc_title:"Tahminler ne kadar tuttu · son 7 gün",acc_desc:"Her gün, bir gün önceden yapılan rüzgâr tahmini Kişinev havalimanında (10 m) ölçülen gerçek rüzgârla karşılaştırılır.",acc_day:"Gün",acc_obs:"Ölçülen",acc_bias:"ortalama sapma",acc_mae:"saatlik ortalama hata {v} m/s",acc_best:"en isabetli",acc_note:"Sapma eksiyse model rüzgârı olduğundan zayıf, artıysa güçlü tahmin etmiş. Rakamlar günlük ortalama rüzgâr (m/s). Güncelleme: {t}.",live:"Canlı · <b>{t}</b> güncellendi · saat başı yenilenir",stale:"<b>Tahmin eskidi</b> · ",saved:"Kayıtlı veri · <b>{t}</b>",
       h_stale:"Bu tahminin süresi doldu.",h_strong:"Güçlü rüzgar, yüksek üretim.",h_good:"Üretim için elverişli rüzgar.",h_mid:"Orta rüzgar, kısmi üretim.",h_weak:"Zayıf rüzgar, düşük üretim.",
       h_text:"Önümüzdeki 24 saatte 105 m'de ortalama <b>{v} m/s</b>. Tahmini üretim <b>{e} MWh</b> (modeller {lo}–{hi}), yaklaşık <b>{lei} lei</b> ({llo}–{lhi} lei).",h_text0:"Önümüzdeki 24 saatte 105 m'de ortalama <b>{v} m/s</b>. Tahmini üretim <b>{e} MWh</b> (modeller {lo}–{hi}), kapasite kullanımı %{cf}.",h_lei:" Brüt satış değeri ≈{lei} lei ({llo}–{lhi}); masraflar düşülmemiştir.",tile_cf:"Kapasite kullanımı, 24 saat",tile_cf_sub:"2 MW nominale göre · modeller %{lo}–%{hi}",show_lei:"Brüt satışı göster",hide_lei:"Satışı gizle",gross_note:"bakım, sigorta, kredi ve vergi düşülmemiştir",
       chip_norm:"{m} normaline göre %{p}",agree:["Tahmin güveni: Yüksek","Tahmin güveni: Orta","Tahmin güveni: Düşük"],agree_tip:"Üç ayrı hava tahmin merkezinin (ECMWF, ICON, GFS) 24 saatlik üretim tahmini {lo}–{hi} MWh. Rakamlar birbirine yakınsa güven yüksek, uzaksa düşük.",
@@ -241,7 +248,7 @@ table.acct{min-width:420px}
       days:["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],mon:["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
       month:["January","February","March","April","May","June","July","August","September","October","November","December"],
       c16:["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"],c8:["N","NE","E","SE","S","SW","W","NW"],
-      brand:"Ecosolaris Wind Panel",acc_title:"How accurate were the forecasts · last 7 days",acc_desc:"Each day, the forecast made one day ahead is compared with the wind measured at Chișinău airport (10 m).",acc_day:"Day",acc_obs:"Measured",acc_bias:"average bias",acc_mae:"hourly mean error {v} m/s",acc_best:"most accurate",acc_note:"A negative bias means the model forecast weaker wind than measured, positive means stronger. Figures are daily mean wind (m/s). Updated: {t}.",live:"Live · updated <b>{t}</b> · refreshes hourly",stale:"<b>Forecast out of date</b> · ",saved:"Saved data · <b>{t}</b>",
+      brand:"Ecosolaris Wind Panel",rpm_u:"rpm",rpm_stop:"stopped",acc_title:"How accurate were the forecasts · last 7 days",acc_desc:"Each day, the forecast made one day ahead is compared with the wind measured at Chișinău airport (10 m).",acc_day:"Day",acc_obs:"Measured",acc_bias:"average bias",acc_mae:"hourly mean error {v} m/s",acc_best:"most accurate",acc_note:"A negative bias means the model forecast weaker wind than measured, positive means stronger. Figures are daily mean wind (m/s). Updated: {t}.",live:"Live · updated <b>{t}</b> · refreshes hourly",stale:"<b>Forecast out of date</b> · ",saved:"Saved data · <b>{t}</b>",
       h_stale:"This forecast has expired.",h_strong:"Strong wind, high output.",h_good:"Good wind for production.",h_mid:"Moderate wind, partial output.",h_weak:"Weak wind, low output.",
       h_text:"Over the next 24 hours the wind at 105 m averages <b>{v} m/s</b>. Expected output <b>{e} MWh</b> (models {lo}–{hi}), about <b>{lei} lei</b> ({llo}–{lhi} lei).",h_text0:"Over the next 24 hours the wind at 105 m averages <b>{v} m/s</b>. Expected output <b>{e} MWh</b> (models {lo}–{hi}), capacity factor {cf}%.",h_lei:" Gross sales value ≈{lei} lei ({llo}–{lhi}), before costs.",tile_cf:"Capacity factor, 24 h",tile_cf_sub:"of 2 MW rated · models {lo}–{hi}%",show_lei:"Show gross sales",hide_lei:"Hide sales",gross_note:"before maintenance, insurance, loan and tax",
       chip_norm:"{p}% of a normal {m} day",agree:["Forecast confidence: High","Forecast confidence: Medium","Forecast confidence: Low"],agree_tip:"Three weather centres (ECMWF, ICON, GFS) forecast {lo}–{hi} MWh for the next 24 hours. Close numbers mean high confidence, far apart means low.",
@@ -269,7 +276,7 @@ table.acct{min-width:420px}
       days:["Dum","Lun","Mar","Mie","Joi","Vin","Sâm"],mon:["ian","feb","mar","apr","mai","iun","iul","aug","sep","oct","noi","dec"],
       month:["ianuarie","februarie","martie","aprilie","mai","iunie","iulie","august","septembrie","octombrie","noiembrie","decembrie"],
       c16:["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSV","SV","VSV","V","VNV","NV","NNV"],c8:["N","NE","E","SE","S","SV","V","NV"],
-      brand:"Panou eolian Ecosolaris",acc_title:"Cât de exacte au fost prognozele · ultimele 7 zile",acc_desc:"În fiecare zi, prognoza făcută cu o zi înainte este comparată cu vântul măsurat la aeroportul Chișinău (10 m).",acc_day:"Ziua",acc_obs:"Măsurat",acc_bias:"abatere medie",acc_mae:"eroare orară medie {v} m/s",acc_best:"cel mai exact",acc_note:"O abatere negativă înseamnă că modelul a prognozat vânt mai slab decât cel măsurat, pozitivă înseamnă mai puternic. Cifrele sunt vântul mediu zilnic (m/s). Actualizat: {t}.",live:"În direct · actualizat <b>{t}</b> · se reîmprospătează orar",stale:"<b>Prognoză expirată</b> · ",saved:"Date salvate · <b>{t}</b>",
+      brand:"Panou eolian Ecosolaris",rpm_u:"rot/min",rpm_stop:"oprită",acc_title:"Cât de exacte au fost prognozele · ultimele 7 zile",acc_desc:"În fiecare zi, prognoza făcută cu o zi înainte este comparată cu vântul măsurat la aeroportul Chișinău (10 m).",acc_day:"Ziua",acc_obs:"Măsurat",acc_bias:"abatere medie",acc_mae:"eroare orară medie {v} m/s",acc_best:"cel mai exact",acc_note:"O abatere negativă înseamnă că modelul a prognozat vânt mai slab decât cel măsurat, pozitivă înseamnă mai puternic. Cifrele sunt vântul mediu zilnic (m/s). Actualizat: {t}.",live:"În direct · actualizat <b>{t}</b> · se reîmprospătează orar",stale:"<b>Prognoză expirată</b> · ",saved:"Date salvate · <b>{t}</b>",
       h_stale:"Această prognoză a expirat.",h_strong:"Vânt puternic, producție mare.",h_good:"Vânt favorabil pentru producție.",h_mid:"Vânt moderat, producție parțială.",h_weak:"Vânt slab, producție redusă.",
       h_text:"În următoarele 24 de ore vântul la 105 m are în medie <b>{v} m/s</b>. Producție estimată <b>{e} MWh</b> (modele {lo}–{hi}), aproximativ <b>{lei} lei</b> ({llo}–{lhi} lei).",h_text0:"În următoarele 24 de ore vântul la 105 m are în medie <b>{v} m/s</b>. Producție estimată <b>{e} MWh</b> (modele {lo}–{hi}), factor de capacitate {cf}%.",h_lei:" Valoare brută a vânzărilor ≈{lei} lei ({llo}–{lhi}), înainte de costuri.",tile_cf:"Factor de capacitate, 24 h",tile_cf_sub:"din 2 MW nominal · modele {lo}–{hi}%",show_lei:"Arată vânzările brute",hide_lei:"Ascunde vânzările",gross_note:"înainte de mentenanță, asigurare, credit și taxe",
       chip_norm:"{p}% față de o zi normală de {m}",agree:["Încredere în prognoză: ridicată","Încredere în prognoză: medie","Încredere în prognoză: scăzută"],agree_tip:"Trei centre meteo (ECMWF, ICON, GFS) prognozează {lo}–{hi} MWh pentru următoarele 24 h. Cifre apropiate înseamnă încredere ridicată, cifre depărtate încredere scăzută.",
@@ -371,6 +378,15 @@ table.acct{min-width:420px}
     var k=sp<0.3?0:sp<0.6?1:2;return {t:L().agree[k]+" · "+fmt(r.min,0)+"–"+fmt(r.max,0)+" MWh",c:["good","mid","bad"][k],tip:t("agree_tip",{lo:fmt(r.min,1),hi:fmt(r.max,1)})};
   }
 
+  var ROT=null,RM=false;try{RM=window.matchMedia("(prefers-reduced-motion: reduce)").matches}catch(e){}
+  function spin(rpm){
+    $("rpm").textContent=rpm>0?fmt(rpm,1)+" "+t("rpm_u"):t("rpm_stop");
+    var el=$("rotor");if(!el||!el.animate)return;
+    if(!ROT){ROT=el.animate([{transform:"rotate(0deg)"},{transform:"rotate(360deg)"}],{duration:1000,iterations:Infinity});}
+    if(RM||rpm<=0){ROT.pause();return}
+    var rate=rpm/60;if(ROT.updatePlaybackRate)ROT.updatePlaybackRate(rate);else ROT.playbackRate=rate;
+    if(ROT.playState!=="running")ROT.play();
+  }
   function applyStatic(){
     document.documentElement.lang=LANG;
     Array.prototype.forEach.call(document.querySelectorAll("[data-i]"),function(el){el.innerHTML=t(el.getAttribute("data-i"))});
@@ -389,7 +405,7 @@ table.acct{min-width:420px}
     $("h-text").innerHTML=t("h_text0",{v:fmt(m,1),e:fmt(eE,1),lo:fmt(r.min,1),hi:fmt(r.max,1),cf:fmt(eE/(2*(to-NOW))*100,0)})+(SHOWLEI?t("h_lei",{lei:fmt(lei(eE),0),llo:fmt(lei(r.min),0),lhi:fmt(lei(r.max),0)}):"");
     var ag=agree(NOW,to);
     $("h-chips").innerHTML='<span class="chip '+(pct>=110?"good":pct>=70?"":"mid")+'">'+t("chip_norm",{m:L().month[parseT(T[NOW]).mo],p:fmt(pct,0)})+'</span><span class="chip '+ag.c+'" title="'+ag.tip+'" tabindex="0">'+ag.t+'</span>'+(SHOWLEI?'<span class="chip">'+fmt(price,2)+' lei/kWh</span>':'');
-    var hv=e.hub[sel]||0;$("rotor").style.setProperty("--spin",(e.kw[sel]>0?Math.max(1.4,22/Math.max(hv,1)):60)+"s");
+    spin(e.kw[sel]>0?Math.min(14.9,9+Math.max(0,(e.rew[sel]||0)-4)*1.2):0);
   }
   function tiles(){
     var e=C.e,to=Math.min(NOW+24,N),eE=energy("e",NOW,to),r=erange(NOW,to),ok=0;
