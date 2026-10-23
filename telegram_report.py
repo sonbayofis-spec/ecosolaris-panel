@@ -435,20 +435,28 @@ def send(token, chat, text, quiet):
     return r.get("ok", False)
 
 
+ALERT_LANGS_DEFAULT = ["tr", "ro"]  # dil yazılmamış alıcıya uyarılar Türkçe + Romence gider
+
+
+def alert_langs(lang_given):
+    return [lang_given] if lang_given else ALERT_LANGS_DEFAULT
+
+
 def test_alerts(token, chats, now):
     """Elle başlatılan test: örnek uyarı kartlarını 'TEST' işaretiyle gönderir, saatlik raporu göndermez."""
     t = [(now.replace(minute=0, second=0, microsecond=0) + timedelta(hours=k)).strftime("%Y-%m-%dT%H:00") for k in range(12)]
     for c in chats:
-        chat, _, lang = c.partition(":")
-        lang = (lang or "tr").lower(); lang = lang if lang in A else "tr"
-        a_ = A[lang]; f = lambda v: fmt(v, 0, lang)
+      chat, _, given = c.partition(":")
+      for lang in alert_langs(given.lower()):
+        lang = lang if lang in A else "tr"
+        a_ = A[lang]; f = lambda v, lang=lang: fmt(v, 0, lang)
         items = [("cut", a_["h_cut"], span_card(t, 3, 6, lang), a_["b_cut"].format(v=f(26), g=f(33))),
                  ("ice", a_["h_ice"], span_card(t, 8, 11, lang), a_["b_ice"])]
         spec = {"kind": "cut", "title": "TEST · " + a_["c_now"], "items": items}
         png = get_alert_card(spec, now, lang)
         cap = "🧪 TEST · " + a_["head_now"]
         ok = send_photo(token, chat, png, cap, False) if png else send(token, chat, cap, False)
-        print(("TEST OK " if ok else "TEST HATA ") + chat)
+        print(("TEST OK " if ok else "TEST HATA ") + chat + " " + lang)
     return 0
 
 
@@ -480,8 +488,9 @@ def main():
         al = None
     failed = 0
     for c in chats:
-        chat, _, lang = c.partition(":")
-        lang = (lang or "tr").lower()
+        chat, _, given = c.partition(":")
+        given = given.lower()
+        lang = given or "tr"
         lang = lang if lang in L else "tr"
         png = get_card(s, now, lang, price)
         ok = False
@@ -494,10 +503,10 @@ def main():
             ok = send(token, chat, message(s, now, lang), quiet)
         print(("OK " if ok else "HATA ") + chat)
         failed += 0 if ok else 1
-        if al:
-            for loud, msg, spec in alert_messages(al, now, lang):
+        for alang in (alert_langs(given) if al else []):
+            for loud, msg, spec in alert_messages(al, now, alang):
                 ok2 = False
-                png = get_alert_card(spec, now, lang)
+                png = get_alert_card(spec, now, alang)
                 if png:
                     try:
                         ok2 = send_photo(token, chat, png, msg.split("\n")[0], quiet and not loud)
