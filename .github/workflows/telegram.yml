@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: "41 * * * *"
   workflow_dispatch:
+    inputs:
+      test_uyari:
+        description: "Örnek uyarı kartı gönder (saatlik rapor gönderilmez)"
+        type: boolean
+        default: false
 
 jobs:
   rapor:
@@ -19,4 +24,5 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           PRICE_LEI: ${{ vars.PRICE_LEI }}
+          TEST_ALERT: ${{ inputs.test_uyari }}
         run: python telegram_report.py
