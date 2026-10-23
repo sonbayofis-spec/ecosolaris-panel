@@ -449,7 +449,7 @@ table.acct{min-width:420px}
   function lei(mwh){return mwh*1000*price}
   function agree(f,t2){
     var r=erange(f,t2),mean=r.all.reduce(function(a,b){return a+b},0)/r.all.length,sp=(r.max-r.min)/Math.max(mean,0.5*(t2-f)/24);
-    var k=sp<0.3?0:sp<0.6?1:2;return {t:L().agree[k]+'<span class="xr"> · '+fmt(r.min,0)+"–"+fmt(r.max,0)+" MWh</span>",c:["good","mid","bad"][k],tip:t("agree_tip",{lo:fmt(r.min,1),hi:fmt(r.max,1)})};
+    var k=sp<0.3?0:sp<0.6?1:2;return {t:L().agree[k]+'<span class="xr"> · '+fmt(Math.floor(r.min),0)+"–"+fmt(Math.ceil(r.max),0)+" MWh</span>",c:["good","mid","bad"][k],tip:t("agree_tip",{lo:fmt(r.min,1),hi:fmt(r.max,1)})};
   }
 
   var ROT=null,RM=false;try{RM=window.matchMedia("(prefers-reduced-motion: reduce)").matches}catch(e){}
