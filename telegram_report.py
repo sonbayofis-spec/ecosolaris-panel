@@ -32,7 +32,7 @@ L = {
            "month": ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"],
            "days": ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"],
            "dirs": ["kuzey", "kuzeydoğu", "doğu", "güneydoğu", "güney", "güneybatı", "batı", "kuzeybatı"],
-           "now": "Şimdi", "of_cap": "kapasite %{p}", "next3": "Sonraki saatler", "h24": "Önümüzdeki 24 saat", "today": "Bugün",
+           "now": "Şimdi", "of_cap": "kapasite %{p}", "next3": "Sonraki saatler", "h24": "Önümüzdeki 24 saat", "today": "Bugün", "dfull": ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"], "proj": "💰 <b>{d} için tahmini brüt satış</b>: ≈{lei} lei ({lo}–{hi}) · {e} MWh",
            "expected": "beklenen üretim", "conf": "Tahmin güvenilirliği", "levels": ["Yüksek", "Orta", "Düşük"],
            "times": "{m} ortalamasının {x} katı", "pct": "{m} ortalamasına göre %{p}", "gross": "brüt satış",
            "stop": "{n} saat rüzgâr yetersiz, üretim yok", "link": "Paneli aç", "dec": ","},
@@ -40,7 +40,7 @@ L = {
            "month": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
            "days": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
            "dirs": ["north", "north-east", "east", "south-east", "south", "south-west", "west", "north-west"],
-           "now": "Now", "of_cap": "{p}% of capacity", "next3": "Next hours", "h24": "Next 24 hours", "today": "Today",
+           "now": "Now", "of_cap": "{p}% of capacity", "next3": "Next hours", "h24": "Next 24 hours", "today": "Today", "dfull": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"], "proj": "💰 <b>Projected gross sales, {d}</b>: ≈{lei} lei ({lo}–{hi}) · {e} MWh",
            "expected": "expected output", "conf": "Forecast confidence", "levels": ["High", "Medium", "Low"],
            "times": "{x}× a normal {m} day", "pct": "{p}% of a normal {m} day", "gross": "gross sales",
            "stop": "{n} h too calm to produce", "link": "Open panel", "dec": "."},
@@ -48,14 +48,14 @@ L = {
            "month": ["ianuarie", "februarie", "martie", "aprilie", "mai", "iunie", "iulie", "august", "septembrie", "octombrie", "noiembrie", "decembrie"],
            "days": ["Lun", "Mar", "Mie", "Joi", "Vin", "Sâm", "Dum"],
            "dirs": ["nord", "nord-est", "est", "sud-est", "sud", "sud-vest", "vest", "nord-vest"],
-           "now": "Acum", "of_cap": "{p}% din capacitate", "next3": "Orele următoare", "h24": "Următoarele 24 de ore", "today": "Azi",
+           "now": "Acum", "of_cap": "{p}% din capacitate", "next3": "Orele următoare", "h24": "Următoarele 24 de ore", "today": "Azi", "dfull": ["luni", "marți", "miercuri", "joi", "vineri", "sâmbătă", "duminică"], "proj": "💰 <b>Vânzări brute estimate, {d}</b>: ≈{lei} lei ({lo}–{hi}) · {e} MWh",
            "expected": "producție estimată", "conf": "Încredere în prognoză", "levels": ["ridicată", "medie", "scăzută"],
            "times": "de {x} ori o zi normală de {m}", "pct": "{p}% dintr-o zi normală de {m}", "gross": "vânzări brute",
            "stop": "{n} ore fără vânt suficient", "link": "Deschide panoul", "dec": ","},
 }
 
 def pw(v):
-    if not v or v < 3 or v > 25:
+    if not v or v < 3.5 or v > 25:
         return 0.0
     for (a, pa), (b, pb) in zip(PC, PC[1:]):
         if v <= b:
@@ -162,7 +162,7 @@ def message(s, now, lang):
     ]
     if s["stop"]:
         out.append(f"⏸ {x['stop'].format(n=s['stop'])}")
-    out += ["", f"💰 <b>{x['today']} ({now.day} {x['mon'][now.month - 1]})</b>: ≈{r100(s['td_lei'])} lei {x['gross']} ({r100(s['td_llo'])}–{r100(s['td_lhi'])}) · {f(s['td_e'])} MWh"]
+    out += ["", x['proj'].format(d=f"{x['dfull'][now.weekday()]} ({now.day} {x['mon'][now.month - 1]})", lei=r100(s['td_lei']), lo=r100(s['td_llo']), hi=r100(s['td_lhi']), e=f(s['td_e']))]
     out += ["", f'<a href="{PANEL}{hash_}">{x["link"]} →</a>']
     return "\n".join(out)
 
