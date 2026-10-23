@@ -32,7 +32,7 @@ L = {
            "month": ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"],
            "days": ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"],
            "dirs": ["kuzey", "kuzeydoğu", "doğu", "güneydoğu", "güney", "güneybatı", "batı", "kuzeybatı"],
-           "now": "Şimdi", "of_cap": "kapasite %{p}", "next3": "Sonraki saatler", "h24": "Önümüzdeki 24 saat",
+           "now": "Şimdi", "of_cap": "kapasite %{p}", "next3": "Sonraki saatler", "h24": "Önümüzdeki 24 saat", "today": "Bugün",
            "expected": "beklenen üretim", "conf": "Tahmin güvenilirliği", "levels": ["Yüksek", "Orta", "Düşük"],
            "times": "{m} ortalamasının {x} katı", "pct": "{m} ortalamasına göre %{p}", "gross": "brüt satış",
            "stop": "{n} saat rüzgâr yetersiz, üretim yok", "link": "Paneli aç", "dec": ","},
@@ -40,7 +40,7 @@ L = {
            "month": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
            "days": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
            "dirs": ["north", "north-east", "east", "south-east", "south", "south-west", "west", "north-west"],
-           "now": "Now", "of_cap": "{p}% of capacity", "next3": "Next hours", "h24": "Next 24 hours",
+           "now": "Now", "of_cap": "{p}% of capacity", "next3": "Next hours", "h24": "Next 24 hours", "today": "Today",
            "expected": "expected output", "conf": "Forecast confidence", "levels": ["High", "Medium", "Low"],
            "times": "{x}× a normal {m} day", "pct": "{p}% of a normal {m} day", "gross": "gross sales",
            "stop": "{n} h too calm to produce", "link": "Open panel", "dec": "."},
@@ -48,7 +48,7 @@ L = {
            "month": ["ianuarie", "februarie", "martie", "aprilie", "mai", "iunie", "iulie", "august", "septembrie", "octombrie", "noiembrie", "decembrie"],
            "days": ["Lun", "Mar", "Mie", "Joi", "Vin", "Sâm", "Dum"],
            "dirs": ["nord", "nord-est", "est", "sud-est", "sud", "sud-vest", "vest", "nord-vest"],
-           "now": "Acum", "of_cap": "{p}% din capacitate", "next3": "Orele următoare", "h24": "Următoarele 24 de ore",
+           "now": "Acum", "of_cap": "{p}% din capacitate", "next3": "Orele următoare", "h24": "Următoarele 24 de ore", "today": "Azi",
            "expected": "producție estimată", "conf": "Încredere în prognoză", "levels": ["ridicată", "medie", "scăzută"],
            "times": "de {x} ori o zi normală de {m}", "pct": "{p}% dintr-o zi normală de {m}", "gross": "vânzări brute",
            "stop": "{n} ore fără vânt suficient", "link": "Deschide panoul", "dec": ","},
@@ -115,7 +115,19 @@ def summary(h, now, price):
         "ratio": e24["e"] / NORM[now.month - 1], "agree": 0 if spread < 0.3 else 1 if spread < 0.6 else 2,
         "dir": round((h[f"wind_direction_100m_{MODELS['e']}"][i0] % 360) / 45) % 8,
         "stop": sum(1 for j in range(i0, i1) if kw[j] <= 0),
+        **today_sales(t, res, now, price),
     }
+
+
+def today_sales(t, res, now, price):
+    day = now.strftime("%Y-%m-%d")
+    idx = [j for j, x in enumerate(t) if x[:10] == day]
+    if not idx:
+        return {"td_e": 0.0, "td_lei": 0.0, "td_llo": 0.0, "td_lhi": 0.0}
+    a, b = idx[0], idx[-1] + 1
+    ed = {m: sum(k[a:b]) / 1000 * NET for m, (_, k) in res.items()}
+    return {"td_e": ed["e"], "td_lei": ed["e"] * 1000 * price,
+            "td_llo": min(ed.values()) * 1000 * price, "td_lhi": max(ed.values()) * 1000 * price}
 
 
 def bar(frac, n=10):
@@ -147,10 +159,10 @@ def message(s, now, lang):
         f"📈 <b>{f(s['e'])} MWh</b> {x['expected']}",
         f"{conf_icon} {x['conf']}: {x['levels'][s['agree']]} ({f(s['lo'], 0)}–{f(s['hi'], 0)} MWh)",
         f"📅 {rel}",
-        f"💰 ≈{r100(s['lei'])} lei {x['gross']} ({r100(s['llo'])}–{r100(s['lhi'])})",
     ]
     if s["stop"]:
         out.append(f"⏸ {x['stop'].format(n=s['stop'])}")
+    out += ["", f"💰 <b>{x['today']} ({now.day} {x['mon'][now.month - 1]})</b>: ≈{r100(s['td_lei'])} lei {x['gross']} ({r100(s['td_llo'])}–{r100(s['td_lhi'])}) · {f(s['td_e'])} MWh"]
     out += ["", f'<a href="{PANEL}{hash_}">{x["link"]} →</a>']
     return "\n".join(out)
 
