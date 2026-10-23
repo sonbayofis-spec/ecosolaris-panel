@@ -435,9 +435,28 @@ def send(token, chat, text, quiet):
     return r.get("ok", False)
 
 
+def test_alerts(token, chats, now):
+    """Elle başlatılan test: örnek uyarı kartlarını 'TEST' işaretiyle gönderir, saatlik raporu göndermez."""
+    t = [(now.replace(minute=0, second=0, microsecond=0) + timedelta(hours=k)).strftime("%Y-%m-%dT%H:00") for k in range(12)]
+    for c in chats:
+        chat, _, lang = c.partition(":")
+        lang = (lang or "tr").lower(); lang = lang if lang in A else "tr"
+        a_ = A[lang]; f = lambda v: fmt(v, 0, lang)
+        items = [("cut", a_["h_cut"], span_card(t, 3, 6, lang), a_["b_cut"].format(v=f(26), g=f(33))),
+                 ("ice", a_["h_ice"], span_card(t, 8, 11, lang), a_["b_ice"])]
+        spec = {"kind": "cut", "title": "TEST · " + a_["c_now"], "items": items}
+        png = get_alert_card(spec, now, lang)
+        cap = "🧪 TEST · " + a_["head_now"]
+        ok = send_photo(token, chat, png, cap, False) if png else send(token, chat, cap, False)
+        print(("TEST OK " if ok else "TEST HATA ") + chat)
+    return 0
+
+
 def main():
     token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
     chats = [c.strip() for c in os.environ.get("TELEGRAM_CHAT_ID", "").split(",") if c.strip()]
+    if os.environ.get("TEST_ALERT", "").lower() in ("true", "1", "evet"):
+        return test_alerts(token, chats, datetime.now(ZoneInfo("Europe/Chisinau")))
     price = float(os.environ.get("PRICE_LEI") or 2.50)
     h = json.load(urllib.request.urlopen(URL, timeout=30))["hourly"]
     now = datetime.now(ZoneInfo("Europe/Chisinau"))
