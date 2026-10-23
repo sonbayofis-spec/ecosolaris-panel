@@ -7,7 +7,7 @@ Gizli değişkenler (Settings -> Secrets and variables -> Actions -> Secrets):
   TELEGRAM_BOT_TOKEN  BotFather'ın verdiği anahtar
   TELEGRAM_CHAT_ID    alıcı(lar): "123456" ya da dil ile "123456:tr,789012:en,-100345:ro"
                       dil verilmezse Türkçe gönderilir.
-İsteğe bağlı değişken (Variables): PRICE_LEI (varsayılan 1.42)
+İsteğe bağlı değişken (Variables): PRICE_LEI (varsayılan 2.50)
 """
 import json, math, os, sys, urllib.parse, urllib.request
 from datetime import datetime
@@ -178,7 +178,7 @@ def send(token, chat, text, quiet):
 def main():
     token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
     chats = [c.strip() for c in os.environ.get("TELEGRAM_CHAT_ID", "").split(",") if c.strip()]
-    price = float(os.environ.get("PRICE_LEI") or 1.42)
+    price = float(os.environ.get("PRICE_LEI") or 2.50)
     h = json.load(urllib.request.urlopen(URL, timeout=30))["hourly"]
     now = datetime.now(ZoneInfo("Europe/Chisinau"))
     s = summary(h, now, price)
