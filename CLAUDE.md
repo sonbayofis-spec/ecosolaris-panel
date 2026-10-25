@@ -1,0 +1,39 @@
+# Ecosolaris Rüzgâr Paneli
+
+Vestas V90-2.0 MW (göbek 105 m), Pojăreni, Moldova (46,893 K 28,695 D). 7 günlük rüzgâr, üretim ve gelir tahmini.
+Canlı: https://sonbayofis-spec.github.io/ecosolaris-panel/ · Depo: github.com/sonbayofis-spec/ecosolaris-panel (GitHub Pages, `main`).
+
+## Çalışma kuralları (kullanıcı kararları)
+- Kullanıcı **Türkçe** konuşur. Panelde üç dil var (TR, EN, RO); metin ekleyince üçünü de ekle (`index.html` içindeki dil nesneleri).
+- **Onaysız yayınlama.** Değişikliği önce yan taraftaki fark penceresinde göster; kullanıcı "yayınla/push et" demeden push etme.
+- **Satış fiyatı manuel girişte kalır** (varsayılan 2,50 lei/kWh, tarayıcıda `eco_price2`). Otomatik OPEM fiyatına çevirme.
+- Tasarımı bozma; kullanıcı arayüzden memnun, endişesi **verilerin doğruluğu** (dengeleme cezaları buna bağlı).
+
+## Yapı
+- `index.html`: tek dosyalık panel. Open-Meteo'dan ECMWF, ICON, GFS çeker; rüzgâr profili → rotor eşdeğer hızı → hava yoğunluğu düzeltmesi → V90 güç eğrisi → kW/MWh.
+- `telegram_report.py`: saatlik Telegram raporu. **Aynı hesabı ayrıca yapar; `index.html`'deki hesapla senkron tut** (saha katsayısı, yoğunluk, net verim).
+- `accuracy.py` / `accuracy.json`: son 7 gün, 10 m rüzgâr, Kişinev havalimanı (LUKK).
+- `forecast_log.py` → `data/forecast/`: her sabah ertesi günün saatlik tahmini (OPEM PZU teklif kapanışı 09:30'dan önce).
+- `tracking.py` + `actual.csv` → `tracking.json`: tahmin ↔ gerçek üretim karşılaştırması (panel kartı veri gelince açılır). `actual.csv`: `saat,kwh` (yerel saat, kWh).
+- `.github/workflows/`: `takip.yml` (06:15 UTC), `telegram.yml` (saatlik), `accuracy.yml`, `keepalive.yml`. Telegram anahtarları GitHub Secrets'ta.
+
+## Önemli sayılar ve belirsizlikler
+- Saha katsayısı **×1,14** (rüzgâr hızına). Ölçüme değil tahminlere dayanır; ±0,05 ≈ ±%14 üretim. Panel ×1,05–×1,25 senaryo aralığı da gösterir. Arazi analizi ~×1,03–1,08, Moldova atlası daha yüksek, ülke geneli kapasite faktörü düşük: çelişkili. **Gerçek üretim gelince ilk iş katsayıyı kalibre etmek.**
+- Net verim %92, hava yoğunluğu saatlik (sıcaklıktan). Doğrulama şu an 10 m havalimanı verisiyle, 105 m'yi ve MWh'yi sınamıyor.
+- Türbin montaj aşamasında; SCADA yok. Üretim verisi sayaç/şebeke operatöründen elle `actual.csv`'ye girilecek.
+
+## Piyasa bilgisi (kaynak: OPEM, Moldelectrica, ANRE)
+- OPEM PZU saatlik, MDL/MWh. Teklifler ertesi gün için 09:30'da kapanır. Fiyat CSV: `https://www.opem.md/tranzactionare-rezultate/RezultatePZU/export/csv?Data=YYYY-MM-DD`.
+- Sapma bildirilen (NF) ve ölçülen enerji farkıyla hesaplanır; sorumlu PRE. Kesin formül, tolerans, fiyat tavanı ve NF teslim saati **doğrulanmadı** (Piyasa Kuralları, ANRE HCA 283/2020).
+- Yakında 5 MW depolama bağlanacak (MWh kapasitesi ve bağlantı biçimi bilinmiyor). Takip saatlik tutulur, depolamaya genişletilebilir.
+
+## Açık işler
+1. `Üretim takibi` ilk çalışmasını kontrol et (Actions), Telegram saatlik akışı sağlıklı mı.
+2. Depolama ve dengeleme kurallarını detaylandır (PRE kim, formül, kapasite).
+3. `actual.csv`'ye gerçek üretim girilince katsayıyı kalibre et, aralığı daralt.
+4. İstenirse Telegram raporuna da belirsizlik aralığı ekle.
+
+## Ortam notları
+- Birden çok bilgisayardan çalışılıyor: işe başlamadan önce **Fetch/Pull origin**.
+- Bazı bilgisayarlarda `git push` için GitHub girişi yok; o durumda dosyalar GitHub web düzenleyicisinden yüklenebilir.
+- Windows'ta betikleri yerelde denemek için Python 3.12 ve `tzdata` gerekir (GitHub Actions'ta gerekmez).
