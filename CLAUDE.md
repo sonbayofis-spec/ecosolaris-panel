@@ -12,7 +12,7 @@ Canlı: https://sonbayofis-spec.github.io/ecosolaris-panel/ · Depo: github.com/
 ## Yapı
 - `index.html`: tek dosyalık panel. Open-Meteo'dan ECMWF, ICON, GFS çeker; rüzgâr profili → rotor eşdeğer hızı → hava yoğunluğu düzeltmesi → V90 güç eğrisi → kW/MWh.
 - `telegram_report.py`: saatlik Telegram raporu. **Aynı hesabı ayrıca yapar; `index.html`'deki hesapla senkron tut** (saha katsayısı, yoğunluk, net verim).
-- `accuracy.py` / `accuracy.json`: son 7 gün, 10 m rüzgâr, Kişinev havalimanı (LUKK).
+- `accuracy.py` / `accuracy.json`: son 7 gün, 10 m rüzgâr, Kişinev havalimanı (LUKK). **Panel kartı kullanıcı isteğiyle gizli** (`SHOWACC=false` in `index.html`); iş akışı çalışmaya devam eder, istenirse tamamen kaldırılabilir.
 - `forecast_log.py` → `data/forecast/`: her sabah ertesi günün saatlik tahmini (OPEM PZU teklif kapanışı 09:30'dan önce).
 - `tracking.py` + `actual.csv` → `tracking.json`: tahmin ↔ gerçek üretim karşılaştırması (panel kartı veri gelince açılır). `actual.csv`: `saat,kwh` (yerel saat, kWh).
 - `.github/workflows/`: `takip.yml` (06:15 UTC), `telegram.yml` (saatlik), `accuracy.yml`, `keepalive.yml`. Telegram anahtarları GitHub Secrets'ta.
