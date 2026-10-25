@@ -22,7 +22,7 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 URL = ("https://api.open-meteo.com/v1/forecast?latitude=46.8932&longitude=28.6946"
-       "&hourly=wind_speed_10m,wind_speed_80m,wind_speed_100m,wind_speed_120m,wind_speed_180m,wind_direction_100m"
+       "&hourly=wind_speed_10m,wind_speed_80m,wind_speed_100m,wind_speed_120m,wind_speed_180m,wind_direction_100m,temperature_2m"
        "&wind_speed_unit=ms&timezone=Europe%2FChisinau&forecast_days=3"
        "&models=ecmwf_ifs025,icon_seamless,gfs_seamless")
 WX_URL = ("https://api.open-meteo.com/v1/forecast?latitude=46.8932&longitude=28.6946"
@@ -36,7 +36,16 @@ PC = [(3, 0), (3.5, 42), (4, 93), (4.5, 145), (5, 211), (5.5, 284), (6, 391), (6
 MODELS = {"e": "ecmwf_ifs025", "i": "icon_seamless", "g": "gfs_seamless"}
 LEVELS = [("10m", 10), ("80m", 80), ("100m", 100), ("120m", 120), ("180m", 180)]
 SLICES = [(z, math.sqrt(R * R - (z - HUB) ** 2)) for z in range(60, 151, 5) if R * R - (z - HUB) ** 2 > 0]
-DENS = (RHO / 1.225) ** (1 / 3)
+ELEV = 176
+# Hava yoğunluğu saatlik hesaplanır (panelle aynı): standart atmosfer basıncı ve o saatin sıcaklığı.
+# Sıcaklık yoksa RHO kullanılır. Güç eğrisi 1,225 kg/m³ içindir; hız küp kökle ölçeklenir.
+HUBP = 101325 * (1 - 2.25577e-5 * (ELEV + HUB)) ** 5.25588
+
+
+def dens_factor(tc):
+    rho = HUBP / (287.05 * (tc - 0.0065 * HUB + 273.15)) if isinstance(tc, (int, float)) and -50 < tc < 50 else RHO
+    return (rho / 1.225) ** (1 / 3)
+
 
 L = {
     "tr": {"mon": ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"],
@@ -129,6 +138,7 @@ def profile(lv):
 
 def compute(h, key):
     hub, kw = [], []
+    temps = h.get(f"temperature_2m_{key}") or []
     for i in range(len(h["time"])):
         lv = []
         for name, z in LEVELS:
@@ -139,7 +149,7 @@ def compute(h, key):
             hub.append(None); kw.append(0.0); continue
         u = profile(lv)
         s = sum(w * u(z) ** 3 for z, w in SLICES); w = sum(w for _, w in SLICES)
-        hub.append(u(HUB)); kw.append(pw((s / w) ** (1 / 3) * DENS))
+        hub.append(u(HUB)); kw.append(pw((s / w) ** (1 / 3) * dens_factor(temps[i] if i < len(temps) else None)))
     return hub, kw
 
 
