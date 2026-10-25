@@ -1,0 +1,5 @@
+# Gerçek üretim, saat saat. Türbin devreye girince buraya satır ekleyin; panel kendiliğinden güncellenir.
+# saat = yerel saat (Moldova), aralığın BAŞI. kwh = o saatte şebekeye verilen enerji (kWh).
+# 30 ya da 15 dakikalık sayaç verisi de olur (aynı saat içindeki satırlar toplanır; eksik aralıklı saatler atlanır).
+# Ayraç virgül (,) ya da noktalı virgül (;). Noktalı virgül kullanırsanız ondalık virgüldür: 812,5
+saat,kwh
