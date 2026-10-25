@@ -1,0 +1,41 @@
+name: Üretim takibi
+
+# Her sabah ertesi günün saatlik tahminini kaydeder (OPEM PZU teklif kapanışı 09:30'dan önce:
+# 06:15 UTC = kışın 08:15, yazın 09:15 Moldova saati) ve actual.csv'deki gerçek üretimle karşılaştırır.
+# actual.csv'ye yeni satır eklendiğinde de karşılaştırma yeniden çalışır.
+on:
+  schedule:
+    - cron: "15 6 * * *"
+  push:
+    paths:
+      - actual.csv
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: takip
+  cancel-in-progress: false
+
+jobs:
+  takip:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Ertesi günün tahminini kaydet
+        if: github.event_name != 'push'
+        run: python forecast_log.py
+      - name: Gerçek üretimle karşılaştır
+        run: python tracking.py
+      - name: Sonucu kaydet
+        run: |
+          mkdir -p data
+          git config user.name "ecosolaris-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data tracking.json
+          git diff --staged --quiet || (git commit -m "Üretim takibi" && git pull --rebase && git push)
