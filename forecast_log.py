@@ -29,7 +29,9 @@ def main():
     if len(idx) < 23:
         print(f"{delivery} için yeterli saat yok ({len(idx)}), kayıt yazılmadı.")
         return 1
-    rec = {"issued": now.strftime("%Y-%m-%dT%H:%M"), "delivery": delivery, "net": tr.NET,
+    # OPEM PZU teklifleri 09:30'da kapanır; bu saatten sonra alınan kayıt "geç" işaretlenir (takipte ayrı sayılır).
+    late = now.hour * 60 + now.minute >= 9 * 60 + 30
+    rec = {"issued": now.strftime("%Y-%m-%dT%H:%M"), "late": late, "delivery": delivery, "net": tr.NET,
            "times": [h["time"][i][11:16] for i in idx], "kw": {}, "raw": {},
            # Hangi ayarlarla hesaplandığı: katsayı ya da yöntem değişirse geçmiş tahminler ham girdiden yeniden hesaplanabilir.
            "method": {"version": "2026-10-26", "site": tr.SITE, "net": tr.NET, "hub": tr.HUB, "rotor_radius": tr.R,
