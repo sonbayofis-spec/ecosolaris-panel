@@ -55,7 +55,8 @@ L = {
            "now": "Şimdi", "of_cap": "kapasite %{p}", "next3": "Sonraki saatler", "h24": "Önümüzdeki 24 saat", "today": "Bugün", "dfull": ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"], "proj": "💰 <b>{d} için tahmini brüt satış</b>: ≈{lei} lei ({lo}–{hi}) · {e} MWh",
            "expected": "beklenen üretim", "conf": "Tahmin güvenilirliği", "levels": ["Yüksek", "Orta", "Düşük"],
            "times": "{m} ortalamasının {x} katı", "pct": "{m} ortalamasına göre %{p}", "gross": "brüt satış",
-           "stop": "{n} saat rüzgâr yetersiz, üretim yok", "link": "Paneli aç", "dec": ","},
+           "stop": "{n} saat rüzgâr yetersiz, üretim yok", "link": "Paneli aç",
+           "pr": "hava belirsizliği (P10–P90): {lo}–{hi} MWh · ortanca {mid}", "opem": "OPEM gün öncesi fiyatıyla: {lei} lei (ort. {p} lei/kWh, referans)", "dec": ","},
     "en": {"mon": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
            "month": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
            "days": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
@@ -63,7 +64,8 @@ L = {
            "now": "Now", "of_cap": "{p}% of capacity", "next3": "Next hours", "h24": "Next 24 hours", "today": "Today", "dfull": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"], "proj": "💰 <b>Projected gross sales, {d}</b>: ≈{lei} lei ({lo}–{hi}) · {e} MWh",
            "expected": "expected output", "conf": "Forecast confidence", "levels": ["High", "Medium", "Low"],
            "times": "{x}× a normal {m} day", "pct": "{p}% of a normal {m} day", "gross": "gross sales",
-           "stop": "{n} h too calm to produce", "link": "Open panel", "dec": "."},
+           "stop": "{n} h too calm to produce", "link": "Open panel",
+           "pr": "weather uncertainty (P10–P90): {lo}–{hi} MWh · median {mid}", "opem": "At OPEM day-ahead prices: {lei} lei (avg {p} lei/kWh, reference)", "dec": "."},
     "ro": {"mon": ["ian", "feb", "mar", "apr", "mai", "iun", "iul", "aug", "sep", "oct", "noi", "dec"],
            "month": ["ianuarie", "februarie", "martie", "aprilie", "mai", "iunie", "iulie", "august", "septembrie", "octombrie", "noiembrie", "decembrie"],
            "days": ["Lun", "Mar", "Mie", "Joi", "Vin", "Sâm", "Dum"],
@@ -71,7 +73,8 @@ L = {
            "now": "Acum", "of_cap": "{p}% din capacitate", "next3": "Orele următoare", "h24": "Următoarele 24 de ore", "today": "Azi", "dfull": ["luni", "marți", "miercuri", "joi", "vineri", "sâmbătă", "duminică"], "proj": "💰 <b>Vânzări brute estimate, {d}</b>: ≈{lei} lei ({lo}–{hi}) · {e} MWh",
            "expected": "producție estimată", "conf": "Încredere în prognoză", "levels": ["ridicată", "medie", "scăzută"],
            "times": "de {x} ori o zi normală de {m}", "pct": "{p}% dintr-o zi normală de {m}", "gross": "vânzări brute",
-           "stop": "{n} ore fără vânt suficient", "link": "Deschide panoul", "dec": ","},
+           "stop": "{n} ore fără vânt suficient", "link": "Deschide panoul",
+           "pr": "incertitudine meteo (P10–P90): {lo}–{hi} MWh · mediană {mid}", "opem": "La prețurile OPEM pentru ziua următoare: {lei} lei (medie {p} lei/kWh, referință)", "dec": ","},
 }
 
 A = {
@@ -214,6 +217,77 @@ def today_sales(t, res, now, price):
             "td_llo": min(ed.values()) * 1000 * price, "td_lhi": max(ed.values()) * 1000 * price}
 
 
+ENS_URL = ("https://ensemble-api.open-meteo.com/v1/ensemble?latitude=46.8932&longitude=28.6946"
+           "&hourly=wind_speed_10m,wind_speed_80m,wind_speed_100m,wind_speed_120m,wind_speed_180m,temperature_2m"
+           "&models=ecmwf_ifs025&wind_speed_unit=ms&timezone=Europe%2FChisinau&forecast_days=7")
+
+
+def ensemble_quantiles(now):
+    """ECMWF'in 51 üyesi aynı hesaptan geçirilir; önümüzdeki 24 saatin üretiminde P10/P50/P90 (MWh). Paneldeki ile aynı yöntem."""
+    h = json.load(urllib.request.urlopen(ENS_URL, timeout=60))["hourly"]
+    t = h["time"]
+    key = now.strftime("%Y-%m-%dT%H:00")
+    if key not in t:
+        return None
+    i0 = t.index(key)
+    i1 = i0 + 24
+    if i1 > len(t):
+        return None
+    energies = []
+    for m in range(51):
+        sfx = "" if m == 0 else f"_member{m:02d}"
+        hh = {"time": t}
+        for name, _ in LEVELS:
+            if h.get(f"wind_speed_{name}{sfx}"):
+                hh[f"wind_speed_{name}_X"] = h[f"wind_speed_{name}{sfx}"]
+        if h.get(f"temperature_2m{sfx}"):
+            hh["temperature_2m_X"] = h[f"temperature_2m{sfx}"]
+        if "wind_speed_100m_X" not in hh:
+            continue
+        _, kw = compute(hh, "X")
+        energies.append(sum(kw[i0:i1]) / 1000 * NET)
+    if len(energies) < 10:
+        return None
+    energies.sort()
+
+    def q(p):
+        x = (len(energies) - 1) * p
+        lo, hi = int(x), min(int(x) + 1, len(energies) - 1)
+        return energies[lo] + (energies[hi] - energies[lo]) * (x - lo)
+    return {"p10": q(.1), "p50": q(.5), "p90": q(.9)}
+
+
+def opem_today(h, now):
+    """Günün üretimini OPEM PZU saatlik fiyatıyla değerlendirir (referans). prices.json depoda her gün güncellenir."""
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "prices.json")
+    days = json.load(open(path, encoding="utf-8")).get("days", {})
+    day = now.strftime("%Y-%m-%d")
+    pr = days.get(day)
+    if not pr or len(pr) != 24:
+        return None
+    t = h["time"]
+    idx = [j for j, x in enumerate(t) if x[:10] == day]
+    if len(idx) != 24:
+        return None
+    _, kw = compute(h, MODELS["e"])
+    mdl = sum(kw[j] / 1000 * NET * pr[int(t[j][11:13])] for j in idx)
+    e = sum(kw[j] for j in idx) / 1000 * NET
+    return {"opem_lei": mdl, "opem_avg": mdl / (e * 1000) if e > 0 else None}
+
+
+def extras(h, now):
+    """Rapora eklenen isteğe bağlı bilgiler; biri alınamazsa rapor onsuz gider."""
+    out = {}
+    for fn, arg in ((ensemble_quantiles, (now,)), (opem_today, (h, now))):
+        try:
+            r = fn(*arg)
+            if r:
+                out.update(r)
+        except Exception as e:
+            print(f"{fn.__name__} hesaplanamadı:", e, file=sys.stderr)
+    return out
+
+
 def runs(flags, t, min_len=1):
     """Ardışık True saat blokları: [(başlangıç indeksi, bitiş indeksi hariç)]."""
     out, a = [], None
@@ -348,9 +422,13 @@ def message(s, now, lang):
         f"{conf_icon} {x['conf']}: {x['levels'][s['agree']]} ({f(math.floor(s['lo']), 0)}–{f(math.ceil(s['hi']), 0)} MWh)",
         f"📅 {rel}",
     ]
+    if "p10" in s:
+        out.insert(out.index(f"📅 {rel}"), "📊 " + x["pr"].format(lo=f(s["p10"]), hi=f(s["p90"]), mid=f(s["p50"])))
     if s["stop"]:
         out.append(f"⏸ {x['stop'].format(n=s['stop'])}")
     out += ["", x['proj'].format(d=f"{x['dfull'][now.weekday()]} ({now.day} {x['mon'][now.month - 1]})", lei=r100(s['td_lei']), lo=r100(s['td_llo']), hi=r100(s['td_lhi']), e=f(s['td_e']))]
+    if "opem_lei" in s and s.get("opem_avg"):
+        out.append("💱 " + x["opem"].format(lei=r100(s["opem_lei"]), p=f(s["opem_avg"], 2)))
     out += ["", f'<a href="{PANEL}{hash_}">{x["link"]} →</a>']
     return "\n".join(out)
 
@@ -361,6 +439,7 @@ CARD = {
            "t2_l": "{d} TAHMİNİ BRÜT SATIŞ", "t2_s": "{e} MWh · tahmin, tahsilat değil",
            "chart_l": "ÖNÜMÜZDEKİ 24 SAAT · TÜRBİN GÜCÜ (kW)",
            "foot_stop": "{n} saat rüzgâr 3,5 m/s altında, üretim yok", "foot_ok": "24 saatin tamamında üretim bekleniyor",
+           "t1_s2": "hava belirsizliği P10–P90: {lo}–{hi} MWh", "t2_s2": "OPEM gün öncesi fiyatıyla: {lei} lei",
            "foot2": "ECMWF · ICON · GFS (Open-Meteo), saha düzeltmeli 105 m · fiyat {p} lei/kWh"},
     "en": {"kicker": "WIND · HOURLY REPORT", "stamp": "Report · {h}", "site": "Pojăreni · Vestas V90-2.0 MW · hub 105 m",
            "now_l": "NOW · {h}", "now_s": "{kw} kW  ·  {cap}% of capacity  ·  {dir}",
@@ -368,6 +447,7 @@ CARD = {
            "t2_l": "{d} PROJECTED GROSS SALES", "t2_s": "{e} MWh · projection, not revenue",
            "chart_l": "NEXT 24 HOURS · TURBINE POWER (kW)",
            "foot_stop": "{n} h with wind below 3.5 m/s, no output", "foot_ok": "Output expected in every hour",
+           "t1_s2": "weather uncertainty P10–P90: {lo}–{hi} MWh", "t2_s2": "at OPEM day-ahead prices: {lei} lei",
            "foot2": "ECMWF · ICON · GFS (Open-Meteo), site-corrected 105 m · price {p} lei/kWh"},
     "ro": {"kicker": "VÂNT · RAPORT ORAR", "stamp": "Raport · {h}", "site": "Pojăreni · Vestas V90-2.0 MW · butuc 105 m",
            "now_l": "ACUM · {h}", "now_s": "{kw} kW  ·  {cap}% din capacitate  ·  {dir}",
@@ -375,6 +455,7 @@ CARD = {
            "t2_l": "VÂNZĂRI BRUTE ESTIMATE, {d}", "t2_s": "{e} MWh · estimare, nu încasare",
            "chart_l": "URMĂTOARELE 24 DE ORE · PUTEREA TURBINEI (kW)",
            "foot_stop": "{n} ore cu vânt sub 3,5 m/s, fără producție", "foot_ok": "Producție estimată în fiecare oră",
+           "t1_s2": "incertitudine meteo P10–P90: {lo}–{hi} MWh", "t2_s2": "la prețurile OPEM: {lei} lei",
            "foot2": "ECMWF · ICON · GFS (Open-Meteo), corectat pentru amplasament, 105 m · preț {p} lei/kWh"},
 }
 
@@ -393,6 +474,8 @@ def card_data(s, now, lang, price):
         "t1_l": c["t1_l"], "t1_v": f(s["e"]), "t1_s": c["t1_s"].format(lo=f(math.floor(s["lo"]), 0), hi=f(math.ceil(s["hi"]), 0)),
         "t2_l": c["t2_l"].format(d=x["dfull"][now.weekday()].upper() if lang != "tr" else x["dfull"][now.weekday()].upper().replace("I", "I")),
         "t2_v": r100(s["td_lei"]), "t2_s": c["t2_s"].format(e=f(s["td_e"])),
+        "t1_s2": c["t1_s2"].format(lo=f(s["p10"], 0), hi=f(s["p90"], 0)) if "p10" in s else "",
+        "t2_s2": c["t2_s2"].format(lei=r100(s["opem_lei"])) if "opem_lei" in s else "",
         "agree": s["agree"], "conf": f"{x['conf']}: {x['levels'][s['agree']]}", "norm": rel,
         "chart_l": c["chart_l"], "kw": s["series"], "hours": s["hours"],
         "foot1": c["foot_stop"].format(n=s["stop"]) if s["stop"] else c["foot_ok"],
@@ -438,13 +521,18 @@ def caption(s, now, lang):
     r100 = lambda v: f(round(v / 100) * 100, 0)
     hash_ = "" if lang == "tr" else "#" + lang
     conf_icon = ["🟢", "🟡", "🔴"][s["agree"]]
-    return "\n".join([
+    lines = [
         f"🌬 <b>Ecosolaris</b> · {x['days'][now.weekday()]} {now.day} {x['mon'][now.month - 1]}, {now:%H}:00",
         f"{x['now']}: {f(s['hub'])} m/s · {f(s['kw'], 0)} kW",
         f"{x['h24']}: {f(s['e'])} MWh · {conf_icon} {x['levels'][s['agree']]}",
-        x['proj'].format(d=f"{x['dfull'][now.weekday()]}", lei=r100(s['td_lei']), lo=r100(s['td_llo']), hi=r100(s['td_lhi']), e=f(s['td_e'])),
-        f'<a href="{PANEL}{hash_}">{x["link"]} →</a>',
-    ])
+    ]
+    if "p10" in s:
+        lines.append("📊 " + x["pr"].format(lo=f(s["p10"]), hi=f(s["p90"]), mid=f(s["p50"])))
+    lines.append(x['proj'].format(d=f"{x['dfull'][now.weekday()]}", lei=r100(s['td_lei']), lo=r100(s['td_llo']), hi=r100(s['td_lhi']), e=f(s['td_e'])))
+    if "opem_lei" in s and s.get("opem_avg"):
+        lines.append("💱 " + x["opem"].format(lei=r100(s["opem_lei"]), p=f(s["opem_avg"], 2)))
+    lines.append(f'<a href="{PANEL}{hash_}">{x["link"]} →</a>')
+    return "\n".join(lines)
 
 
 def send_photo(token, chat, png, cap, quiet):
@@ -503,6 +591,7 @@ def main():
     validate_hourly(h)
     now = datetime.now(ZoneInfo("Europe/Chisinau"))
     s = summary(h, now, price)
+    s.update(extras(h, now))
     quiet = now.hour >= 23 or now.hour < 7
     if not token or not chats:
         print(message(s, now, "tr"))
