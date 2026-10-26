@@ -29,12 +29,23 @@ def main():
         print(f"{delivery} için yeterli saat yok ({len(idx)}), kayıt yazılmadı.")
         return 1
     rec = {"issued": now.strftime("%Y-%m-%dT%H:%M"), "delivery": delivery, "net": tr.NET,
-           "times": [h["time"][i][11:16] for i in idx], "kw": {}}
+           "times": [h["time"][i][11:16] for i in idx], "kw": {}, "raw": {},
+           # Hangi ayarlarla hesaplandığı: katsayı ya da yöntem değişirse geçmiş tahminler ham girdiden yeniden hesaplanabilir.
+           "method": {"version": "2026-10-26", "site": tr.SITE, "net": tr.NET, "hub": tr.HUB, "rotor_radius": tr.R,
+                      "density": "saatlik: 2 m sıcaklık, göbekte standart atmosfer basıncı", "rho_fallback": tr.RHO,
+                      "elevation_m": tr.ELEV, "power_curve": "Vestas V90-2.0 MW (OEDB), başlama 3,5 m/s, durma 25 m/s"}}
+    levels = [name for name, _ in tr.LEVELS]
     for m, key in tr.MODELS.items():
         if not h.get(f"wind_speed_100m_{key}"):
             continue
         _, kw = tr.compute(h, key)
         rec["kw"][m] = [round(kw[i], 1) for i in idx]
+        # Ham girdi: rüzgâr profili, yön ve sıcaklık (modelin verdiği değerler, saha katsayısı uygulanmadan).
+        raw = {lvl: [h[f"wind_speed_{lvl}_{key}"][i] for i in idx] for lvl in levels if h.get(f"wind_speed_{lvl}_{key}")}
+        for name, src in (("dir", "wind_direction_100m"), ("temp", "temperature_2m")):
+            if h.get(f"{src}_{key}"):
+                raw[name] = [h[f"{src}_{key}"][i] for i in idx]
+        rec["raw"][m] = raw
     if "e" not in rec["kw"]:
         print("ECMWF tahmini yok, kayıt yazılmadı.")
         return 1
