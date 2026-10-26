@@ -1,0 +1,29 @@
+name: Testler
+
+# Hesap ya da betik değişince çalışır: Python birim testleri + panel (JavaScript) ile Python hesabının eşdeğerlik denetimi.
+# Kırmızı olursa bir şey bozulmuş demektir; İzleme iş akışı Telegram'a haber verir.
+on:
+  push:
+    paths:
+      - index.html
+      - "*.py"
+      - tests/**
+      - .github/workflows/test.yml
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Python birim testleri
+        run: python -W ignore::ResourceWarning -m unittest discover -s tests -v
+      - name: Panel ile Python eşdeğerliği
+        run: node tests/parity.mjs
