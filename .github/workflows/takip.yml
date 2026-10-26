@@ -1,11 +1,12 @@
 name: Üretim takibi
 
-# Her sabah ertesi günün saatlik tahminini kaydeder (OPEM PZU teklif kapanışı 09:30'dan önce:
-# 06:15 UTC = kışın 08:15, yazın 09:15 Moldova saati) ve actual.csv'deki gerçek üretimle karşılaştırır.
+# Her sabah ertesi günün saatlik tahminini kaydeder ve actual.csv'deki gerçek üretimle karşılaştırır.
+# OPEM PZU teklif kapanışı 09:30 (Moldova). GitHub zamanlanmış işleri bir saate kadar geciktirebildiği için
+# erken zamanlandı: 04:30 UTC = kışın 06:30, yazın 07:30 Moldova saati.
 # actual.csv'ye yeni satır eklendiğinde de karşılaştırma yeniden çalışır.
 on:
   schedule:
-    - cron: "15 6 * * *"
+    - cron: "30 4 * * *"
   push:
     paths:
       - actual.csv
