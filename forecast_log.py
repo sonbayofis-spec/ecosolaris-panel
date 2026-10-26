@@ -24,6 +24,7 @@ def main():
         return 0
     req = urllib.request.Request(tr.URL, headers={"User-Agent": "ecosolaris-panel"})
     h = json.loads(urllib.request.urlopen(req, timeout=60).read().decode("utf-8"))["hourly"]
+    tr.validate_hourly(h)
     idx = [i for i, s in enumerate(h["time"]) if s.startswith(delivery)]
     if len(idx) < 23:
         print(f"{delivery} için yeterli saat yok ({len(idx)}), kayıt yazılmadı.")
