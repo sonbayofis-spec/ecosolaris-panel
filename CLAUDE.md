@@ -19,7 +19,7 @@ Canlı: https://sonbayofis-spec.github.io/ecosolaris-panel/ · Depo: github.com/
 - `accuracy.py` / `accuracy.json`: son 7 gün, 10 m rüzgâr, Kişinev havalimanı (LUKK). **Panel kartı kullanıcı isteğiyle gizli** (`SHOWACC=false` in `index.html`); iş akışı çalışmaya devam eder, istenirse tamamen kaldırılabilir.
 - `forecast_log.py` → `data/forecast/`: her sabah ertesi günün saatlik tahmini (OPEM PZU teklif kapanışı 09:30'dan önce).
 - `tracking.py` + `actual.csv` → `tracking.json`: tahmin ↔ gerçek üretim karşılaştırması (panel kartı veri gelince açılır). `actual.csv`: `saat,kwh` (yerel saat, kWh).
-- `.github/workflows/`: `takip.yml` (06:15 UTC), `telegram.yml` (saatlik), `accuracy.yml`, `keepalive.yml`. Telegram anahtarları GitHub Secrets'ta.
+- `.github/workflows/`: `takip.yml` (04:30 UTC; GitHub zamanlanmış işleri ~1 saat geciktirebilir, teklif kapanışı 09:30 Moldova; kayıtta `late` alanı 09:30 sonrası alınanı işaretler), `telegram.yml` (saatlik), `accuracy.yml` (gecelik zamanlama kapalı, elle çalışır), `keepalive.yml`. Telegram anahtarları GitHub Secrets'ta.
 
 ## Önemli sayılar ve belirsizlikler
 - Saha katsayısı **×1,14** (rüzgâr hızına). Ölçüme değil tahminlere dayanır; ±0,05 ≈ ±%14 üretim. Panel ×1,05–×1,25 senaryo aralığı da gösterir. Arazi analizi ~×1,03–1,08, Moldova atlası daha yüksek, ülke geneli kapasite faktörü düşük: çelişkili. **Gerçek üretim gelince ilk iş katsayıyı kalibre etmek.**
