@@ -1,8 +1,8 @@
 name: Tahmin doğruluğu
 
+# Gecelik zamanlama kapatıldı: panel kartı gizli (index.html'de SHOWACC=false). İstenirse elle çalıştırılabilir;
+# geri açmak için aşağıya `schedule: - cron: "23 22 * * *"` ekleyin.
 on:
-  schedule:
-    - cron: "23 22 * * *"
   workflow_dispatch:
 
 permissions:
