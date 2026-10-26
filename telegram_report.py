@@ -136,6 +136,29 @@ def profile(lv):
     return u
 
 
+def validate_hourly(h):
+    """Gelen veri mantıklı mı? Değilse ValueError: iş akışı kırmızı olur, bozuk veriyle rapor ya da kayıt üretilmez."""
+    n = len(h.get("time", []))
+    if n < 48:
+        raise ValueError(f"Saat sayısı yetersiz: {n}")
+    for key in MODELS.values():
+        for name, _ in LEVELS:
+            a = h.get(f"wind_speed_{name}_{key}")
+            if a is None:
+                continue
+            if len(a) != n:
+                raise ValueError(f"Uzunluk uyuşmuyor ({key}, {name})")
+            if any(v is not None and not 0 <= v <= 60 for v in a):
+                raise ValueError(f"Rüzgâr değeri 0–60 m/s dışında ({key}, {name})")
+        t = h.get(f"temperature_2m_{key}")
+        if t and any(v is not None and not -50 < v < 50 for v in t):
+            raise ValueError(f"Sıcaklık −50…50 °C dışında ({key})")
+    e = h.get(f"wind_speed_100m_{MODELS['e']}") or []
+    k = min(72, n)
+    if sum(v is not None for v in e[:k]) < 0.9 * k:
+        raise ValueError("ECMWF 100 m verisi eksik")
+
+
 def compute(h, key):
     hub, kw = [], []
     temps = h.get(f"temperature_2m_{key}") or []
@@ -477,6 +500,7 @@ def main():
         return test_alerts(token, chats, datetime.now(ZoneInfo("Europe/Chisinau")))
     price = float(os.environ.get("PRICE_LEI") or 2.50)
     h = json.load(urllib.request.urlopen(URL, timeout=30))["hourly"]
+    validate_hourly(h)
     now = datetime.now(ZoneInfo("Europe/Chisinau"))
     s = summary(h, now, price)
     quiet = now.hour >= 23 or now.hour < 7
