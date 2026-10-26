@@ -139,7 +139,8 @@ def main():
         if not hours:
             continue
         prices = load_prices(date, a.price_dir, fetch=not a.no_fetch)
-        day = {"date": date, "n": len(hours), "actual_mwh": round(sum(actual[(date, hh)] for _, hh in hours) / 1000, 3)}
+        day = {"date": date, "n": len(hours), "actual_mwh": round(sum(actual[(date, hh)] for _, hh in hours) / 1000, 3),
+               "late": bool(fc.get("late"))}  # teklif kapanışından (09:30) sonra alınmış kayıt mı
         day_pairs = {m: [] for m in MODELS + ["m"]}
         for k, hh in hours:
             act = actual[(date, hh)]
@@ -164,6 +165,7 @@ def main():
     best = min((m for m in MODELS if m in summary), key=lambda m: summary[m]["nmae_pct"], default=None)
     out = {"updated": datetime.now(TZ).strftime("%Y-%m-%dT%H:%M"), "capacity_kw": CAP_KW,
            "hours": summary.get("e", {}).get("n", 0), "skipped_partial_hours": skipped,
+           "late_days": sum(1 for d in days if d.get("late")),
            "summary": summary, "best": best, "days": days[-30:],
            "ref_cost": {k: round(v, 1) if isinstance(v, float) else v for k, v in cost.items()}}
     with open(a.out, "w", encoding="utf-8") as f:
