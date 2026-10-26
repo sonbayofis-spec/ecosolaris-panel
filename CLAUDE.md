@@ -7,7 +7,7 @@ Canlı: https://sonbayofis-spec.github.io/ecosolaris-panel/ · Depo: github.com/
 - Kullanıcı **Türkçe** konuşur. Panelde üç dil var (TR, EN, RO); metin ekleyince üçünü de ekle (`index.html` içindeki dil nesneleri).
 - **Onaysız yayınlama.** Değişikliği önce yan taraftaki fark penceresinde göster; kullanıcı "yayınla/push et" demeden push etme.
 - **Satış fiyatı manuel girişte kalır** (varsayılan 2,50 lei/kWh, tarayıcıda `eco_price2`). Otomatik OPEM fiyatına çevirme.
-- Tasarımı bozma; kullanıcı arayüzden memnun, endişesi **verilerin doğruluğu** (dengeleme cezaları buna bağlı).
+- Tasarımı bozma; kullanıcı arayüzden memnun, öncelik **verilerin doğruluğu**.
 
 ## Yapı
 - `index.html`: tek dosyalık panel. Open-Meteo'dan ECMWF, ICON, GFS çeker; rüzgâr profili → rotor eşdeğer hızı → hava yoğunluğu düzeltmesi → V90 güç eğrisi → kW/MWh.
@@ -20,16 +20,15 @@ Canlı: https://sonbayofis-spec.github.io/ecosolaris-panel/ · Depo: github.com/
 ## Önemli sayılar ve belirsizlikler
 - Saha katsayısı **×1,14** (rüzgâr hızına). Ölçüme değil tahminlere dayanır; ±0,05 ≈ ±%14 üretim. Panel ×1,05–×1,25 senaryo aralığı da gösterir. Arazi analizi ~×1,03–1,08, Moldova atlası daha yüksek, ülke geneli kapasite faktörü düşük: çelişkili. **Gerçek üretim gelince ilk iş katsayıyı kalibre etmek.**
 - Net verim %92, hava yoğunluğu saatlik (sıcaklıktan). Doğrulama şu an 10 m havalimanı verisiyle, 105 m'yi ve MWh'yi sınamıyor.
-- Türbin montaj aşamasında; SCADA yok. Üretim verisi sayaç/şebeke operatöründen elle `actual.csv`'ye girilecek.
+- Gerçek üretim verisi sayaç/şebeke operatöründen elle `actual.csv`'ye girilir.
 
 ## Piyasa bilgisi (kaynak: OPEM, Moldelectrica, ANRE)
 - OPEM PZU saatlik, MDL/MWh. Teklifler ertesi gün için 09:30'da kapanır. Fiyat CSV: `https://www.opem.md/tranzactionare-rezultate/RezultatePZU/export/csv?Data=YYYY-MM-DD`.
 - Sapma bildirilen (NF) ve ölçülen enerji farkıyla hesaplanır; sorumlu PRE. Kesin formül, tolerans, fiyat tavanı ve NF teslim saati **doğrulanmadı** (Piyasa Kuralları, ANRE HCA 283/2020).
-- Yakında 5 MW depolama bağlanacak (MWh kapasitesi ve bağlantı biçimi bilinmiyor). Takip saatlik tutulur, depolamaya genişletilebilir.
 
 ## Açık işler
 1. `Üretim takibi` ilk çalışmasını kontrol et (Actions), Telegram saatlik akışı sağlıklı mı.
-2. Depolama ve dengeleme kurallarını detaylandır (PRE kim, formül, kapasite).
+2. Piyasa kurallarını doğrula (dengeleme formülü, bildirim saati).
 3. `actual.csv`'ye gerçek üretim girilince katsayıyı kalibre et, aralığı daralt.
 4. İstenirse Telegram raporuna da belirsizlik aralığı ekle.
 
