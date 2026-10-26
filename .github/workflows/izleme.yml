@@ -3,7 +3,7 @@ name: İzleme
 # Bir iş akışı başarısız olursa Telegram'a bir kez uyarı gönderir; düzelince bir kez haber verir.
 on:
   workflow_run:
-    workflows: ["Telegram saat başı rapor", "Üretim takibi", "Tahmin doğruluğu", "OPEM fiyatları"]
+    workflows: ["Telegram saat başı rapor", "Üretim takibi", "Tahmin doğruluğu", "OPEM fiyatları", "Testler"]
     types: [completed]
 
 permissions:
