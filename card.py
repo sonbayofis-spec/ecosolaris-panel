@@ -48,13 +48,17 @@ def render(d, lang="tr"):
         ax.add_patch(FancyBboxPatch((0.6, 7.75), 8.8 * frac, 0.16, boxstyle="round,pad=0,rounding_size=0.08", fc=ACC, ec="none"))
 
     # iki kutu
-    card(0.6, 5.6, 4.25, 1.85); card(5.15, 5.6, 4.25, 1.85)
+    card(0.6, 5.4, 4.25, 2.05); card(5.15, 5.4, 4.25, 2.05)
     txt(0.9, 7.0, d["t1_l"], 11.5, MUTED, "bold")
     big(0.9, 6.15, d["t1_v"], "MWh")
-    txt(0.9, 5.82, d["t1_s"], 11.5, MUTED)
+    txt(0.9, 5.84, d["t1_s"], 11.5, MUTED)
+    if d.get("t1_s2"):
+        txt(0.9, 5.58, d["t1_s2"], 11, MUTED)
     txt(5.45, 7.0, d["t2_l"], 11.5, MUTED, "bold")
     big(5.45, 6.15, d["t2_v"], "lei")
-    txt(5.45, 5.82, d["t2_s"], 11.5, MUTED)
+    txt(5.45, 5.84, d["t2_s"], 11.5, MUTED)
+    if d.get("t2_s2"):
+        txt(5.45, 5.58, d["t2_s2"], 11, MUTED)
 
     # güvenilirlik satırı
     col = [ACC, MID, BAD][d["agree"]]
