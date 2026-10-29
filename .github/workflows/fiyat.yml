@@ -1,10 +1,14 @@
 name: OPEM fiyatları
 
 # OPEM ertesi gün için gün öncesi (PZU) fiyatlarını ≈09:40 Moldova saatinde yayınlar.
-# 07:50 UTC = kışın 09:50, yazın 10:50. İkinci çalışma gecikmeye karşı yedektir.
+# Kışın (UTC+2) 07:35 UTC = 09:35; 07:35–09:05 arası dört kontrol fiyatı yayınlanır yayınlanmaz panele taşır
+# (değişiklik yoksa commit atılmaz). 11:30 UTC gecikmeye karşı yedektir.
 on:
   schedule:
+    - cron: "35 7 * * *"
     - cron: "50 7 * * *"
+    - cron: "20 8 * * *"
+    - cron: "5 9 * * *"
     - cron: "30 11 * * *"
   workflow_dispatch:
 
