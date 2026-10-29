@@ -11,6 +11,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))
 
 import monitor
+import prices
 import telegram_report as tr
 import tracking as tk
 
@@ -243,6 +244,30 @@ class PriceFile(unittest.TestCase):
 
     def test_too_few_rows_is_rejected(self):
         self.assertIsNone(self.run_load([4000.0] * 10))
+
+
+class PriceStamp(unittest.TestCase):
+    P = [4000.0] * 24
+
+    def test_first_run_sets_stamp(self):
+        self.assertEqual(prices.updated_stamp(None, {"2026-10-30": self.P}, "2026-10-29T09:52"), "2026-10-29T09:52")
+
+    def test_unchanged_prices_keep_old_stamp(self):
+        old = {"updated": "2026-10-29T09:52", "days": {"2026-10-30": self.P}}
+        self.assertEqual(prices.updated_stamp(old, {"2026-10-30": self.P}, "2026-10-29T10:20"), "2026-10-29T09:52")
+
+    def test_new_day_updates_stamp(self):
+        old = {"updated": "2026-10-29T09:52", "days": {"2026-10-30": self.P}}
+        new = {"2026-10-30": self.P, "2026-10-31": self.P}
+        self.assertEqual(prices.updated_stamp(old, new, "2026-10-30T09:50"), "2026-10-30T09:50")
+
+    def test_dropped_old_day_is_not_an_update(self):
+        old = {"updated": "2026-10-29T09:52", "days": {"2026-10-26": self.P, "2026-10-30": self.P}}
+        self.assertEqual(prices.updated_stamp(old, {"2026-10-30": self.P}, "2026-10-30T00:10"), "2026-10-29T09:52")
+
+    def test_changed_price_updates_stamp(self):
+        old = {"updated": "2026-10-29T09:52", "days": {"2026-10-30": self.P}}
+        self.assertEqual(prices.updated_stamp(old, {"2026-10-30": [4100.0] * 24}, "2026-10-29T11:30"), "2026-10-29T11:30")
 
 
 class Monitor(unittest.TestCase):
