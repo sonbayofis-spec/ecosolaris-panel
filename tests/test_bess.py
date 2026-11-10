@@ -95,6 +95,29 @@ class TelegramTest(unittest.TestCase):
             self.assertNotIn("{", d["foot2"] + d["t1_s"] + d["t2_s"])
             self.assertTrue(d["t2_v"].startswith("+"))
 
+    def test_update_decision(self):
+        d = self.bt.decide
+        est = dict(self.plan, price_src="est", extra_mdl=7741)
+        opem = dict(self.plan, price_src="opem", extra_mdl=24522)
+        self.assertEqual(d({}, "2026-11-11", est), "first")
+        self.assertEqual(d({"day": "2026-11-10"}, "2026-11-11", est), "first")
+        sent = {"day": "2026-11-11", "price_src": "est", "extra_mdl": 7741}
+        self.assertIsNone(d(sent, "2026-11-11", est))
+        self.assertEqual(d(sent, "2026-11-11", opem), "update")
+        self.assertEqual(d(sent, "2026-11-11", dict(opem, extra_mdl=8200)), "mark")
+        self.assertEqual(d({"day": "2026-11-11", "price_src": "est"}, "2026-11-11", opem), "update")
+        self.assertIsNone(d({"day": "2026-11-11", "price_src": "opem", "extra_mdl": 24522}, "2026-11-11", opem))
+
+    def test_update_texts(self):
+        from datetime import datetime
+        for lang in ("tr", "en", "ro"):
+            c = self.bt.caption(self.plan, lang, 7741, True)
+            self.assertIn("7", c)
+            self.assertNotIn("{", c)
+            d = self.bt.card_data(self.plan, {}, datetime(2026, 11, 10, 11, 0), lang, False, 7741, True)
+            self.assertEqual(d["kicker"], self.bt.T[lang]["upd"])
+            self.assertNotIn("{", d["t2_s"])
+
 
 if __name__ == "__main__":
     unittest.main()
