@@ -7,6 +7,11 @@ on:
     workflows: ["Üretim takibi", "OPEM fiyatları"]
     types: [completed]
   workflow_dispatch:
+    inputs:
+      test_kart:
+        description: "Telegram'a deneme BESS kartı gönder"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -26,6 +31,12 @@ jobs:
           python-version: "3.12"
       - name: Planı hesapla
         run: python bess.py
+      - name: Telegram'a yarının planını gönder (günde bir kez)
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          BESS_TEST: ${{ inputs.test_kart }}
+        run: python bess_telegram.py
       - name: Sonucu kaydet
         run: |
           git config user.name "ecosolaris-bot"
