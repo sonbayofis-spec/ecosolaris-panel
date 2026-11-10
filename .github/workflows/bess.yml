@@ -1,0 +1,34 @@
+name: BESS planı
+
+# Tahmin kaydı (Üretim takibi) ya da OPEM fiyatları her güncellendiğinde bugünün ve yarının şarj/deşarj planını yeniden hesaplar.
+# Sabah erken çalışmada yarının fiyatı henüz yoktur; plan son 7 günün ortalamasıyla yapılır, fiyat yayınlanınca yenilenir.
+on:
+  workflow_run:
+    workflows: ["Üretim takibi", "OPEM fiyatları"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bess
+  cancel-in-progress: false
+
+jobs:
+  bess:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Planı hesapla
+        run: python bess.py
+      - name: Sonucu kaydet
+        run: |
+          git config user.name "ecosolaris-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add bess.json data/bess
+          git diff --staged --quiet || (git commit -m "BESS planı" && git pull --rebase && git push)
