@@ -68,5 +68,33 @@ class PlanTest(unittest.TestCase):
         self.assertLessEqual(r["peak_mw"], bess.LIMIT_MW)
 
 
+class TelegramTest(unittest.TestCase):
+    def setUp(self):
+        import bess_telegram
+        self.bt = bess_telegram
+        self.plan = bess.day_plan("2026-11-11", [1.5] * 24, [1000.0] * 12 + [5000.0] * 12, "est", 300.0)
+
+    def test_spans(self):
+        v = [0.0] * 24
+        v[0] = v[1] = v[5] = v[23] = 1.0
+        self.assertEqual(self.bt.spans(v, "tr"), "00–02, 05–06, 23–00")
+        self.assertEqual(self.bt.spans([0.0] * 24, "tr"), "yok")
+
+    def test_caption_all_languages(self):
+        for lang in ("tr", "en", "ro"):
+            c = self.bt.caption(self.plan, lang)
+            self.assertIn("11", c)
+            self.assertIn("lei", c)
+            self.assertNotIn("{", c)
+
+    def test_card_data_complete(self):
+        from datetime import datetime
+        for lang in ("tr", "en", "ro"):
+            d = self.bt.card_data(self.plan, {"limit_mw": 3.96, "usable": 0.9, "rte": 0.88}, datetime(2026, 11, 10, 7, 30), lang)
+            self.assertEqual(len(d["rows"]), 4)
+            self.assertNotIn("{", d["foot2"] + d["t1_s"] + d["t2_s"])
+            self.assertTrue(d["t2_v"].startswith("+"))
+
+
 if __name__ == "__main__":
     unittest.main()
