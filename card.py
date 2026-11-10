@@ -133,3 +133,84 @@ def render_alert(d):
     fig.savefig(buf, format="png", facecolor=BG, dpi=100)
     plt.close(fig)
     return buf.getvalue()
+
+
+def render_bess(d):
+    """BESS günlük plan kartı. d: kicker, date, stamp, t1_l/t1_v/t1_s, t2_l/t2_v/t2_s, rows[(etiket, değer, renk_adı)],
+    chart_l, wind/charge/discharge (24 değer, MWh), limit, leg[3], foot1, foot2. PNG bytes döner."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import FancyBboxPatch
+
+    BG, PANEL, FG, MUTED, LINE = "#0B1F1C", "#12302A", "#E6F2EF", "#8FAAA4", "#1F3C36"
+    ACC, MID, BLUE = "#45C7AB", "#E4A64F", "#86B6F2"
+    COL = {"acc": ACC, "blue": BLUE, "mid": MID, "muted": MUTED}
+    plt.rcParams["font.family"] = "DejaVu Sans"
+    W, H = 10.0, 12.0
+    fig = plt.figure(figsize=(W, H), dpi=100, facecolor=BG)
+    ax = fig.add_axes([0, 0, 1, 1]); ax.set_xlim(0, W); ax.set_ylim(0, H); ax.axis("off")
+
+    def card(x, y, w, h):
+        ax.add_patch(FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0,rounding_size=0.18", fc=PANEL, ec=LINE, lw=1.2))
+
+    def txt(x, y, s, size, color=FG, weight="normal", ha="left"):
+        return ax.text(x, y, s, fontsize=size, color=color, fontweight=weight, ha=ha)
+
+    def big(x, y, val, unit):
+        t = txt(x, y, val, 34, weight="bold")
+        fig.canvas.draw()
+        bb = t.get_window_extent().transformed(ax.transData.inverted())
+        txt(bb.x1 + 0.12, y, unit, 15, MUTED)
+
+    ax.add_patch(FancyBboxPatch((0, H - 0.22), W, 0.22, boxstyle="square,pad=0", fc=BLUE, ec="none"))
+    txt(0.6, H - 1.15, "ECOSOLARIS", 30, weight="bold")
+    txt(0.62, H - 1.55, d["kicker"], 12.5, BLUE, "bold")
+    txt(9.4, H - 1.1, d["date"], 15, ha="right")
+    txt(9.4, H - 1.5, d["stamp"], 12.5, MUTED, ha="right")
+    ax.plot([0.6, 9.4], [H - 1.9, H - 1.9], color=LINE, lw=1.2)
+
+    y0 = H - 4.25
+    card(0.6, y0, 4.25, 2.05); card(5.15, y0, 4.25, 2.05)
+    txt(0.9, y0 + 1.6, d["t1_l"], 11.5, MUTED, "bold"); big(0.9, y0 + 0.75, d["t1_v"], "MWh"); txt(0.9, y0 + 0.32, d["t1_s"], 11.5, MUTED)
+    txt(5.45, y0 + 1.6, d["t2_l"], 11.5, MUTED, "bold"); big(5.45, y0 + 0.75, d["t2_v"], "lei"); txt(5.45, y0 + 0.32, d["t2_s"], 11.5, MUTED)
+
+    y = y0 - 0.55
+    for label, value, col in d["rows"]:
+        ax.add_patch(plt.Circle((0.78, y + 0.09), 0.1, color=COL[col]))
+        txt(1.05, y, label, 13.5, MUTED)
+        txt(9.4, y, value, 13.5, FG, "bold", ha="right")
+        y -= 0.48
+
+    card(0.6, 1.25, 8.8, 3.9)
+    txt(0.9, 4.72, d["chart_l"], 11.5, MUTED, "bold")
+    cx = fig.add_axes([0.105, 0.185, 0.80, 0.185], facecolor=PANEL)
+    n = len(d["wind"]); xs = list(range(n))
+    wg = [max(d["wind"][i] - d["charge"][i], 0) for i in xs]
+    cx.bar(xs, wg, width=0.7, color=ACC)
+    ci = [i for i in xs if d["charge"][i] > 0.02]
+    di = [i for i in xs if d["discharge"][i] > 0.02]
+    cx.bar(ci, [d["charge"][i] for i in ci], width=0.7, bottom=[wg[i] for i in ci], color=PANEL, edgecolor=ACC, linewidth=1.3, linestyle="--")
+    cx.bar(di, [d["discharge"][i] for i in di], width=0.7, bottom=[wg[i] for i in di], color=BLUE)
+    cx.axhline(d["limit"], color=MID, lw=1.3, ls="--")
+    top = max(d["limit"] * 1.12, max(d["wind"]) * 1.05)
+    cx.set_ylim(0, top); cx.set_xlim(-0.6, n - 0.4)
+    ticks = list(range(0, int(top) + 1))
+    cx.set_yticks(ticks); cx.set_yticklabels([str(v) for v in ticks[:-1]] + [f"{ticks[-1]} MW"], color=MUTED, fontsize=10)
+    cx.set_xticks(xs[::3]); cx.set_xticklabels([f"{h:02d}" for h in xs[::3]], color=MUTED, fontsize=10)
+    for sp in cx.spines.values():
+        sp.set_visible(False)
+    cx.tick_params(length=0); cx.grid(axis="y", color=LINE, lw=1); cx.set_axisbelow(True)
+    lx = 0.9
+    for name, col in zip(d["leg"], (ACC, PANEL, BLUE)):
+        ax.add_patch(FancyBboxPatch((lx, 1.5), 0.2, 0.16, boxstyle="round,pad=0,rounding_size=0.03", fc=col, ec=ACC if col == PANEL else "none", lw=1.2, ls="--" if col == PANEL else "-"))
+        t = txt(lx + 0.3, 1.51, name, 10.5, MUTED)
+        fig.canvas.draw()
+        lx = t.get_window_extent().transformed(ax.transData.inverted()).x1 + 0.4
+
+    txt(0.6, 0.78, d["foot1"], 12, FG)
+    txt(0.6, 0.38, d["foot2"], 10.5, MUTED)
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", facecolor=BG, dpi=100)
+    plt.close(fig)
+    return buf.getvalue()
