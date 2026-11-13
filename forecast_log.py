@@ -23,7 +23,7 @@ def main():
         print(f"{delivery} için kayıt zaten var, değiştirilmedi.")
         return 0
     req = urllib.request.Request(tr.URL, headers={"User-Agent": "ecosolaris-panel"})
-    h = json.loads(urllib.request.urlopen(req, timeout=60).read().decode("utf-8"))["hourly"]
+    h = tr.fetch_json(req, timeout=60)["hourly"]
     tr.validate_hourly(h)
     idx = [i for i, s in enumerate(h["time"]) if s.startswith(delivery)]
     if len(idx) < 23:

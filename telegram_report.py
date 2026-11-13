@@ -17,7 +17,7 @@ Gizli değişkenler (Settings -> Secrets and variables -> Actions -> Secrets):
                       dil verilmezse Türkçe gönderilir.
 İsteğe bağlı değişken (Variables): PRICE_LEI (varsayılan 2.50)
 """
-import json, math, os, sys, urllib.parse, urllib.request
+import json, math, os, sys, time, urllib.error, urllib.parse, urllib.request
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
@@ -222,9 +222,27 @@ ENS_URL = ("https://ensemble-api.open-meteo.com/v1/ensemble?latitude=46.8932&lon
            "&models=ecmwf_ifs025&wind_speed_unit=ms&timezone=Europe%2FChisinau&forecast_days=7")
 
 
+def fetch_json(url, timeout=30, tries=3, wait=20):
+    """Veri okuma (GET): geçici ağ hatasında (zaman aşımı, bağlantı kopması, 5xx/429) bekleyip yeniden dener.
+    4xx gibi kalıcı hatalarda ve son denemede hatayı olduğu gibi yükseltir. Yalnızca okuma için; mesaj göndermede kullanılmaz."""
+    for k in range(tries):
+        try:
+            return json.load(urllib.request.urlopen(url, timeout=timeout))
+        except urllib.error.HTTPError as e:
+            if e.code < 500 and e.code != 429 or k == tries - 1:
+                raise
+            err = e
+        except (urllib.error.URLError, TimeoutError, ConnectionError) as e:
+            if k == tries - 1:
+                raise
+            err = e
+        print(f"Veri alınamadı ({err}); {wait} sn sonra yeniden denenecek ({k + 2}/{tries}).", file=sys.stderr)
+        time.sleep(wait)
+
+
 def ensemble_quantiles(now):
     """ECMWF'in 51 üyesi aynı hesaptan geçirilir; önümüzdeki 24 saatin üretiminde P10/P50/P90 (MWh). Paneldeki ile aynı yöntem."""
-    h = json.load(urllib.request.urlopen(ENS_URL, timeout=60))["hourly"]
+    h = fetch_json(ENS_URL, timeout=60, tries=2)["hourly"]
     t = h["time"]
     key = now.strftime("%Y-%m-%dT%H:00")
     if key not in t:
@@ -587,7 +605,7 @@ def main():
     if os.environ.get("TEST_ALERT", "").lower() in ("true", "1", "evet"):
         return test_alerts(token, chats, datetime.now(ZoneInfo("Europe/Chisinau")))
     price = float(os.environ.get("PRICE_LEI") or 2.50)
-    h = json.load(urllib.request.urlopen(URL, timeout=30))["hourly"]
+    h = fetch_json(URL)["hourly"]
     validate_hourly(h)
     now = datetime.now(ZoneInfo("Europe/Chisinau"))
     s = summary(h, now, price)
@@ -596,7 +614,7 @@ def main():
     if not token or not chats:
         print(message(s, now, "tr"))
         try:
-            wx = json.load(urllib.request.urlopen(WX_URL, timeout=30))["hourly"]
+            wx = fetch_json(WX_URL, tries=2)["hourly"]
             for _, m, _spec in alert_messages(alerts(h, wx, now), now, "tr"):
                 print("\n" + m)
         except Exception as e:
@@ -604,7 +622,7 @@ def main():
         print("TELEGRAM_BOT_TOKEN veya TELEGRAM_CHAT_ID eksik; mesaj gönderilmedi.", file=sys.stderr)
         return 1
     try:
-        wx = json.load(urllib.request.urlopen(WX_URL, timeout=30))["hourly"]
+        wx = fetch_json(WX_URL, tries=2)["hourly"]
         al = alerts(h, wx, now)
     except Exception as e:  # uyarılar ana raporu asla durdurmasın
         print("Uyarı verisi alınamadı:", e, file=sys.stderr)
