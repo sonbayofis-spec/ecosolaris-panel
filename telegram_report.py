@@ -222,9 +222,10 @@ ENS_URL = ("https://ensemble-api.open-meteo.com/v1/ensemble?latitude=46.8932&lon
            "&models=ecmwf_ifs025&wind_speed_unit=ms&timezone=Europe%2FChisinau&forecast_days=7")
 
 
-def fetch_json(url, timeout=30, tries=3, wait=20):
+def fetch_json(url, timeout=30, tries=6, wait=45):
     """Veri okuma (GET): geçici ağ hatasında (zaman aşımı, bağlantı kopması, 5xx/429) bekleyip yeniden dener.
-    4xx gibi kalıcı hatalarda ve son denemede hatayı olduğu gibi yükseltir. Yalnızca okuma için; mesaj göndermede kullanılmaz."""
+    4xx gibi kalıcı hatalarda ve son denemede hatayı olduğu gibi yükseltir. Open-Meteo saat başlarında birkaç dakika
+    yanıt vermeyebiliyor (13.11.2026: 21:00 ve 21:03 UTC başarısız, 21:06 başarılı); varsayılan değerler ~7 dakikayı kapsar. Yalnızca okuma için; mesaj göndermede kullanılmaz."""
     for k in range(tries):
         try:
             return json.load(urllib.request.urlopen(url, timeout=timeout))

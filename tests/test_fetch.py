@@ -31,7 +31,7 @@ class FetchJsonTest(unittest.TestCase):
         self.assertEqual((r, calls), ({"a": 3}, 3))
 
     def test_gives_up_after_last_try(self):
-        r, calls, sleeps = self.run_with([urllib.error.URLError("x")] * 3)
+        r, calls, sleeps = self.run_with([urllib.error.URLError("x")] * 3, tries=3)
         self.assertIsInstance(r, urllib.error.URLError)
         self.assertEqual((calls, sleeps), (3, 2))
 
