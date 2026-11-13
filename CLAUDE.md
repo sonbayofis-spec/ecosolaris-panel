@@ -24,6 +24,9 @@ Canlı: https://sonbayofis-spec.github.io/ecosolaris-panel/ · Depo: github.com/
 - `tracking.py` + `actual.csv` → `tracking.json`: tahmin ↔ gerçek üretim karşılaştırması (panel kartı veri gelince açılır). `actual.csv`: `saat,kwh` (yerel saat, kWh).
 - `.github/workflows/`: `takip.yml` (04:30 UTC; GitHub zamanlanmış işleri ~1 saat geciktirebilir, teklif kapanışı 09:30 Moldova; kayıtta `late` alanı 09:30 sonrası alınanı işaretler), `telegram.yml` (saatlik), `accuracy.yml` (gecelik zamanlama kapalı, elle çalışır), `keepalive.yml`. Telegram anahtarları GitHub Secrets'ta.
 
+## Dış tetikleme (cron-job.org)
+GitHub'ın zamanlayıcısı Kasım 2026'da saatlik işlerin çoğunu atladı, günlük işleri 4–8 saat geciktirdi. Bu yüzden işleri cron-job.org başlatır: `POST https://api.github.com/repos/sonbayofis-spec/ecosolaris-panel/actions/workflows/<dosya>.yml/dispatches`, gövde `{"ref":"main"}`, başlık `Authorization: Bearer <anahtar>`. Anahtar: kullanıcının `cron-tetik` adlı ince ayarlı GitHub anahtarı (yalnızca bu depo, Actions: read/write); **süresi dolunca tetikleme 401 verir ve raporlar durur**, yenisi üretilip cron-job.org'daki görevlere yapıştırılır. Görevler: `telegram.yml` her saat :00 (dosyada `schedule` yok, tek kaynak bu), `takip.yml` her gün 06:30 Moldova, `fiyat.yml` 09:15–11:45 Moldova arası yarım saatte bir. `takip.yml` ve `fiyat.yml` içindeki `schedule` yedek olarak durur (çift çalışma zararsız, değişiklik yoksa commit atılmaz, BESS kartı günde bir kez gider).
+
 ## Önemli sayılar ve belirsizlikler
 - Saha katsayısı **×1,14** (rüzgâr hızına). Ölçüme değil tahminlere dayanır; ±0,05 ≈ ±%14 üretim. Panel ×1,05–×1,25 senaryo aralığı da gösterir. Arazi analizi ~×1,03–1,08, Moldova atlası daha yüksek, ülke geneli kapasite faktörü düşük: çelişkili. **Gerçek üretim gelince ilk iş katsayıyı kalibre etmek.**
 - Net verim %92, hava yoğunluğu saatlik (sıcaklıktan). Doğrulama şu an 10 m havalimanı verisiyle, 105 m'yi ve MWh'yi sınamıyor.
