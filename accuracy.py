@@ -3,8 +3,12 @@
 Her gece GitHub Actions çalıştırır. Son 7 günün her saati için, ECMWF, ICON ve GFS'in
 bir gün önceden yaptığı 10 m rüzgâr tahminini Kişinev havalimanının (LUKK) ölçümüyle
 karşılaştırır ve sonucu accuracy.json dosyasına yazar. Panel bu dosyayı okuyup gösterir.
+
+Ayrıca her günün sonucunu data/accuracy/days.json arşivine ekler (gün → ölçüm ortalaması, model ortalamaları,
+model başına ortalama mutlak hata ve saat sayısı). Arşiv yalnızca büyür; her çalışmada son BACK gün yeniden
+hesaplanıp eksik günler doldurulur, böylece atlanan geceler ve geçmiş (BACK güne kadar) sonradan tamamlanır.
 """
-import csv, io, json, sys, urllib.request
+import csv, io, json, os, sys, urllib.request
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
@@ -12,6 +16,8 @@ TZ = ZoneInfo("Europe/Chisinau")
 LAT, LON = 46.927, 28.931  # Kişinev havalimanı (LUKK)
 MODELS = {"e": "ecmwf_ifs025", "i": "icon_seamless", "g": "gfs_seamless"}
 DAYS = 7
+BACK = 45   # arşiv için geriye bakılan gün sayısı
+ARCHIVE = os.path.join("data", "accuracy", "days.json")
 
 
 def get(url):
@@ -19,12 +25,49 @@ def get(url):
     return urllib.request.urlopen(req, timeout=60).read().decode("utf-8")
 
 
+def day_record(day, fcmap, obs):
+    """Bir günün kaydı; 18 saatten az ölçüm varsa None. Model alanları: ortalama (e/i/g), mae_*, n_*."""
+    hours = [f"{day.isoformat()}T{h:02d}:00" for h in range(24)]
+    oh = [h for h in hours if h in obs]
+    if len(oh) < 18:
+        return None, {}
+    rec = {"date": day.isoformat(), "obs": round(sum(obs[h] for h in oh) / len(oh), 2), "n_obs": len(oh)}
+    sums = {}
+    for m in MODELS:
+        pairs = [(fcmap[m].get(h), obs[h]) for h in oh if fcmap[m].get(h) is not None]
+        if len(pairs) < 18:
+            continue
+        rec[m] = round(sum(f for f, _ in pairs) / len(pairs), 2)
+        rec[f"mae_{m}"] = round(sum(abs(f - o) for f, o in pairs) / len(pairs), 2)
+        rec[f"n_{m}"] = len(pairs)
+        sums[m] = {"f": sum(f for f, _ in pairs), "o": sum(o for _, o in pairs), "ae": sum(abs(f - o) for f, o in pairs), "n": len(pairs)}
+    return rec, sums
+
+
+def update_archive(records, path=ARCHIVE):
+    """Yeni gün kayıtlarını arşive ekler; var olan günleri yeniden hesaplananla günceller. Değiştiyse True."""
+    try:
+        with open(path, encoding="utf-8") as f:
+            arc = json.load(f)
+    except (OSError, ValueError):
+        arc = {}
+    before = json.dumps(arc, sort_keys=True)
+    for r in records:
+        arc[r["date"]] = {k: v for k, v in r.items() if k != "date"}
+    if json.dumps(arc, sort_keys=True) == before:
+        return False
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(dict(sorted(arc.items())), f, ensure_ascii=False, separators=(",", ":"))
+    return True
+
+
 def main():
     today = datetime.now(TZ).date()
-    start = today - timedelta(days=DAYS + 1)
+    start = today - timedelta(days=BACK + 1)
     fc_url = ("https://previous-runs-api.open-meteo.com/v1/forecast"
               f"?latitude={LAT}&longitude={LON}&hourly=wind_speed_10m_previous_day1"
-              f"&models={','.join(MODELS.values())}&past_days={DAYS + 1}&forecast_days=1"
+              f"&models={','.join(MODELS.values())}&past_days={BACK + 1}&forecast_days=1"
               "&wind_speed_unit=ms&timezone=Europe%2FChisinau")
     fc = json.loads(get(fc_url))["hourly"]
     fcmap = {m: dict(zip(fc["time"], fc.get(f"wind_speed_10m_previous_day1_{k}", []))) for m, k in MODELS.items()}
@@ -41,25 +84,20 @@ def main():
             continue
         obs[t.replace(" ", "T")] = float(v) * 0.5144
 
-    days = []
+    days, archive = [], []
     tot = {m: {"f": 0.0, "o": 0.0, "ae": 0.0, "n": 0} for m in MODELS}
-    for k in range(DAYS, 0, -1):
-        day = today - timedelta(days=k)
-        rec = {"date": day.isoformat()}
-        hours = [f"{day.isoformat()}T{h:02d}:00" for h in range(24)]
-        oh = [h for h in hours if h in obs]
-        if len(oh) < 18:
+    for k in range(BACK, 0, -1):
+        rec, sums = day_record(today - timedelta(days=k), fcmap, obs)
+        if not rec or not sums:
             continue
-        rec["obs"] = round(sum(obs[h] for h in oh) / len(oh), 2)
-        for m in MODELS:
-            pairs = [(fcmap[m].get(h), obs[h]) for h in oh if fcmap[m].get(h) is not None]
-            if len(pairs) < 18:
-                continue
-            rec[m] = round(sum(f for f, _ in pairs) / len(pairs), 2)
-            t = tot[m]
-            t["f"] += sum(f for f, _ in pairs); t["o"] += sum(o for _, o in pairs)
-            t["ae"] += sum(abs(f - o) for f, o in pairs); t["n"] += len(pairs)
-        days.append(rec)
+        archive.append(rec)
+        if k <= DAYS:
+            days.append({x: rec[x] for x in ("date", "obs", *MODELS) if x in rec})
+            for m, t in sums.items():
+                for key in t:
+                    tot[m][key] += t[key]
+    if update_archive(archive):
+        print(f"Arşiv güncellendi: {len(archive)} gün işlendi.")
 
     summary = {}
     for m, t in tot.items():

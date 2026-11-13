@@ -1,8 +1,11 @@
 name: Tahmin doğruluğu
 
-# Gecelik zamanlama kapatıldı: panel kartı gizli (index.html'de SHOWACC=false). İstenirse elle çalıştırılabilir;
-# geri açmak için aşağıya `schedule: - cron: "23 22 * * *"` ekleyin.
+# Her gece dünün 10 m rüzgâr tahminini Kişinev havalimanı ölçümüyle karşılaştırır; accuracy.json (son 7 gün) ve
+# data/accuracy/days.json (birikimli arşiv) dosyalarını günceller. Panel kartı gizli (index.html'de SHOWACC=false),
+# veri ileride kalibrasyon için biriktirilir. Asıl tetikleme cron-job.org'dan gelir; buradaki schedule yedektir.
 on:
+  schedule:
+    - cron: "23 22 * * *"
   workflow_dispatch:
 
 permissions:
@@ -23,5 +26,5 @@ jobs:
         run: |
           git config user.name "ecosolaris-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add accuracy.json
-          git diff --staged --quiet || (git commit -m "Günlük tahmin doğruluğu" && git push)
+          git add accuracy.json data/accuracy
+          git diff --staged --quiet || (git commit -m "Günlük tahmin doğruluğu" && git pull --rebase && git push)
