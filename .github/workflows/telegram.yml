@@ -1,8 +1,8 @@
 name: Telegram saat başı rapor
 
+# Saat başı çalıştırmayı cron-job.org tetikler (workflow_dispatch, her saat :00). GitHub'ın kendi zamanlayıcısı
+# saatlik işlerin çoğunu atladığı ve günlük işleri saatlerce geciktirdiği için buradaki schedule kaldırıldı (13.11.2026).
 on:
-  schedule:
-    - cron: "41 * * * *"
   workflow_dispatch:
     inputs:
       test_uyari:
