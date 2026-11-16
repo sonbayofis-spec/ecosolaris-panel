@@ -29,6 +29,11 @@ WX_URL = ("https://api.open-meteo.com/v1/forecast?latitude=46.8932&longitude=28.
           "&hourly=temperature_2m,relative_humidity_2m,precipitation,wind_gusts_10m"
           "&wind_speed_unit=ms&timezone=Europe%2FChisinau&forecast_days=4")
 PANEL = "https://sonbayofis-spec.github.io/ecosolaris-panel/"
+CACHE = os.path.join(".cache", "open_meteo.json")   # son başarılı hava verisi (iş akışında actions/cache ile taşınır)
+CACHE_MAX_H = 6                                      # bundan eski kayıtla rapor gönderilmez
+STALE = {"tr": "ℹ️ Hava verisi {t} kaydından; kaynak şu an yanıt vermiyor.",
+         "en": "ℹ️ Weather data from the {t} snapshot; the source is not responding right now.",
+         "ro": "ℹ️ Date meteo din înregistrarea de la {t}; sursa nu răspunde momentan."}
 SITE, RHO, NET, HUB, R = 1.14, 1.198, 0.92, 105, 45
 NORM = [17.25, 16.48, 15.14, 14.46, 10.69, 9.44, 8.73, 8.84, 10.8, 12.6, 13.14, 16.2]
 PC = [(3, 0), (3.5, 42), (4, 93), (4.5, 145), (5, 211), (5.5, 284), (6, 391), (6.5, 492), (7, 601), (7.5, 732), (8, 885),
@@ -241,6 +246,36 @@ def fetch_json(url, timeout=30, tries=6, wait=45):
         time.sleep(wait)
 
 
+def load_forecast(now, path=CACHE):
+    """(saatlik veri, kayıt_saati | None). Canlı veri alınırsa önbelleğe yazar ve (h, None) döner.
+    Kaynak yanıt vermezse (Open-Meteo, GitHub'ın paylaşılan IP'lerine sık sık 429 veriyor) en çok CACHE_MAX_H saatlik
+    son başarılı kaydı kullanır ve kaydın saatini döndürür; o da yoksa hatayı yükseltir."""
+    try:
+        h = fetch_json(URL, tries=4, wait=30)["hourly"]
+        validate_hourly(h)
+    except Exception as e:
+        try:
+            with open(path, encoding="utf-8") as f:
+                c = json.load(f)
+            saved = datetime.fromisoformat(c["saved"])
+            age = (now - saved).total_seconds() / 3600
+            if not 0 <= age <= CACHE_MAX_H:
+                raise ValueError(f"önbellek {age:.1f} saatlik")
+            validate_hourly(c["hourly"])
+        except Exception as e2:
+            print(f"Önbellek kullanılamadı: {e2}", file=sys.stderr)
+            raise e
+        print(f"Canlı veri alınamadı ({e}); {saved:%H:%M} kaydı kullanılıyor.", file=sys.stderr)
+        return c["hourly"], saved
+    try:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump({"saved": now.isoformat(timespec="minutes"), "hourly": h}, f, separators=(",", ":"))
+    except OSError as e:
+        print("Önbellek yazılamadı:", e, file=sys.stderr)
+    return h, None
+
+
 def ensemble_quantiles(now):
     """ECMWF'in 51 üyesi aynı hesaptan geçirilir; önümüzdeki 24 saatin üretiminde P10/P50/P90 (MWh). Paneldeki ile aynı yöntem."""
     h = fetch_json(ENS_URL, timeout=60, tries=2)["hourly"]
@@ -448,6 +483,8 @@ def message(s, now, lang):
     out += ["", x['proj'].format(d=f"{x['dfull'][now.weekday()]} ({now.day} {x['mon'][now.month - 1]})", lei=r100(s['td_lei']), lo=r100(s['td_llo']), hi=r100(s['td_lhi']), e=f(s['td_e']))]
     if "opem_lei" in s and s.get("opem_avg"):
         out.append("💱 " + x["opem"].format(lei=r100(s["opem_lei"]), p=f(s["opem_avg"], 2)))
+    if s.get("stale"):
+        out += ["", STALE[lang].format(t=f"{s['stale']:%H:%M}")]
     out += ["", f'<a href="{PANEL}{hash_}">{x["link"]} →</a>']
     return "\n".join(out)
 
@@ -550,6 +587,8 @@ def caption(s, now, lang):
     lines.append(x['proj'].format(d=f"{x['dfull'][now.weekday()]}", lei=r100(s['td_lei']), lo=r100(s['td_llo']), hi=r100(s['td_lhi']), e=f(s['td_e'])))
     if "opem_lei" in s and s.get("opem_avg"):
         lines.append("💱 " + x["opem"].format(lei=r100(s["opem_lei"]), p=f(s["opem_avg"], 2)))
+    if s.get("stale"):
+        lines.append(STALE[lang if lang in STALE else "tr"].format(t=f"{s['stale']:%H:%M}"))
     lines.append(f'<a href="{PANEL}{hash_}">{x["link"]} →</a>')
     return "\n".join(lines)
 
@@ -606,11 +645,11 @@ def main():
     if os.environ.get("TEST_ALERT", "").lower() in ("true", "1", "evet"):
         return test_alerts(token, chats, datetime.now(ZoneInfo("Europe/Chisinau")))
     price = float(os.environ.get("PRICE_LEI") or 2.50)
-    h = fetch_json(URL)["hourly"]
-    validate_hourly(h)
     now = datetime.now(ZoneInfo("Europe/Chisinau"))
+    h, stale = load_forecast(now)
     s = summary(h, now, price)
     s.update(extras(h, now))
+    s["stale"] = stale
     quiet = now.hour >= 23 or now.hour < 7
     if not token or not chats:
         print(message(s, now, "tr"))

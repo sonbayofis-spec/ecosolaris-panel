@@ -42,5 +42,62 @@ class FetchJsonTest(unittest.TestCase):
         self.assertEqual((calls, sleeps), (1, 0))
 
 
+class LoadForecastTest(unittest.TestCase):
+    def setUp(self):
+        import tempfile
+        from datetime import datetime
+        from zoneinfo import ZoneInfo
+        self.dir = tempfile.TemporaryDirectory()
+        self.path = os.path.join(self.dir.name, ".cache", "om.json")
+        self.now = datetime(2026, 11, 16, 3, 10, tzinfo=ZoneInfo("Europe/Chisinau"))
+        with open(os.path.join(os.path.dirname(__file__), "fixtures", "open_meteo.json"), encoding="utf-8") as f:
+            self.h = json.load(f)["hourly"]
+
+    def tearDown(self):
+        self.dir.cleanup()
+
+    def test_live_data_is_cached(self):
+        with mock.patch.object(tr, "fetch_json", return_value={"hourly": self.h}):
+            h, stale = tr.load_forecast(self.now, self.path)
+        self.assertIsNone(stale)
+        self.assertEqual(json.load(open(self.path, encoding="utf-8"))["saved"], "2026-11-16T03:10+02:00")
+
+    def test_falls_back_to_recent_cache(self):
+        from datetime import timedelta
+        with mock.patch.object(tr, "fetch_json", return_value={"hourly": self.h}):
+            tr.load_forecast(self.now - timedelta(hours=2), self.path)
+        err = urllib.error.HTTPError("u", 429, "Too Many Requests", {}, None)
+        with mock.patch.object(tr, "fetch_json", side_effect=err):
+            h, stale = tr.load_forecast(self.now, self.path)
+        self.assertEqual(h["time"], self.h["time"])
+        self.assertEqual(f"{stale:%H:%M}", "01:10")
+
+    def test_old_cache_is_refused(self):
+        from datetime import timedelta
+        with mock.patch.object(tr, "fetch_json", return_value={"hourly": self.h}):
+            tr.load_forecast(self.now - timedelta(hours=7), self.path)
+        err = urllib.error.HTTPError("u", 429, "Too Many Requests", {}, None)
+        with mock.patch.object(tr, "fetch_json", side_effect=err):
+            with self.assertRaises(urllib.error.HTTPError):
+                tr.load_forecast(self.now, self.path)
+
+    def test_no_cache_raises_original_error(self):
+        with mock.patch.object(tr, "fetch_json", side_effect=urllib.error.URLError("timeout")):
+            with self.assertRaises(urllib.error.URLError):
+                tr.load_forecast(self.now, self.path)
+
+    def test_stale_note_in_texts(self):
+        from datetime import datetime
+        from zoneinfo import ZoneInfo
+        now = datetime.fromisoformat(self.h["time"][30]).replace(tzinfo=ZoneInfo("Europe/Chisinau"))
+        s = tr.summary(self.h, now, 2.5)
+        s["stale"] = now.replace(hour=1, minute=10)
+        for lang in ("tr", "en", "ro"):
+            self.assertIn("01:10", tr.caption(s, now, lang))
+            self.assertIn("01:10", tr.message(s, now, lang))
+        s["stale"] = None
+        self.assertNotIn("ℹ️", tr.caption(s, now, "tr"))
+
+
 if __name__ == "__main__":
     unittest.main()

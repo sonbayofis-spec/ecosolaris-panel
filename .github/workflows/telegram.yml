@@ -19,6 +19,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      # Son başarılı hava verisi: Open-Meteo yanıt vermezse (429 / zaman aşımı) rapor en çok 6 saatlik kayıtla gider.
+      - uses: actions/cache@v4
+        with:
+          path: .cache
+          key: open-meteo-${{ github.run_id }}
+          restore-keys: open-meteo-
       - name: Raporu gönder
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
