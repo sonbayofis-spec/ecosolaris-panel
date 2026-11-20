@@ -29,6 +29,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Çözücüyü kur
+        run: pip install scipy
       - name: Planı hesapla
         run: python bess.py
       - name: Telegram'a yarının planını gönder (günde bir kez)

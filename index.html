@@ -974,9 +974,11 @@ table.besst tfoot td{font-weight:800;border-bottom:0}
   if(EMBED)useData(fromEmbed(EMBED),false,EMBED.fetched);
   load();loadAcc();loadTrk();loadPrices();
   setInterval(load,60*60*1000);
+  var LASTP=Date.now();function refreshFiles(){LASTP=Date.now();loadBess();loadPrices()}
+  setInterval(refreshFiles,10*60*1000);
   setInterval(function(){if(!D)return;var o=NOW;findNow();if(o!==NOW){if(sel===o)sel=NOW;renderAll()}},60*1000);
   var tmr;window.addEventListener("resize",function(){clearTimeout(tmr);tmr=setTimeout(function(){if(D)chart();renderBess()},120)});
-  document.addEventListener("visibilitychange",function(){if(!document.hidden&&Date.now()-LAST>15*60*1000)load()});
+  document.addEventListener("visibilitychange",function(){if(!document.hidden){if(Date.now()-LAST>15*60*1000)load();if(Date.now()-LASTP>5*60*1000)refreshFiles()}});
 })();
 </script>
 </body></html>

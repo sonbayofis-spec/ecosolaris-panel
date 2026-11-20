@@ -23,6 +23,29 @@ class PlanTest(unittest.TestCase):
         self.assertLessEqual(sum(c) * ec, CAP + 1e-6, "günde bir çevrim")
         return c, d
 
+    def test_exact_beats_greedy_on_reviewed_case(self):
+        # 20.11.2026 teknik inceleme raporu, B-01: açgözlü eşleştirme 10.156, kesin çözüm 11.040 MDL
+        w = [1.5, 1.5, 1.5, 1.5, 1.0, 0.0] + [0.0] * 18
+        p = [5000.0, 1000.0, 2000.0, 1000.0, 500.0, 5000.0] + [0.0] * 18
+        val = lambda c, d: sum((y - x) * z for x, y, z in zip(c, d, p))
+        c, d = self.check(w, p)
+        self.assertAlmostEqual(val(c, d), 11040, delta=5)
+        cg, dg = bess.plan_greedy(w, p)
+        self.assertAlmostEqual(val(cg, dg), 10156, delta=5)
+
+    def test_exact_never_worse_than_greedy_on_real_days(self):
+        import glob, json
+        checked = 0
+        for f in sorted(glob.glob(os.path.join("data", "bess", "2026-*.json")))[-20:]:
+            r = json.load(open(f, encoding="utf-8"))
+            w, p = r["wind"], r["price"]
+            val = lambda c, d: sum((y - x) * z for x, y, z in zip(c, d, p))
+            c, d = self.check(w, p)
+            cg, dg = bess.plan_greedy(w, p)
+            self.assertGreaterEqual(val(c, d), val(cg, dg) - 1.0, f)
+            checked += 1
+        self.assertGreater(checked, 0)
+
     def test_shifts_cheap_to_expensive(self):
         wind = [1.5] * 24
         price = [1000.0] * 12 + [5000.0] * 12

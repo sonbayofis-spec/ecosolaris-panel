@@ -54,8 +54,51 @@ def eur_rate(day):
 def plan(wind, price, p_mw=P_MW, cap=E_MWH * USABLE, rte=RTE, limit=LIMIT_MW, wear=WEAR, q=Q):
     """wind: saatlik MWh (=ortalama MW), price: saatlik net fiyat (MDL/MWh). (şarj, deşarj) listelerini döndürür.
 
-    Açgözlü eşleştirme: her adımda q MWh'yi en çok kazandıran (şarj saati → sonraki deşarj saati) çiftine verir;
-    güç, rüzgâr, sayaç sınırı ve doluluk kısıtlarını korur. Sonuç tests/test_bess.py'de doğrusal programla karşılaştırılır.
+    Kesin çözüm: karma tamsayılı doğrusal program (scipy.optimize.milp). Aynı kısıtlar altında günlük geliri en çoğa
+    çıkarır; şarj/deşarj aynı saatte olamaz (saat başına bir ikili değişken). scipy yoksa ya da çözüm alınamazsa
+    açgözlü eşleştirmeye (plan_greedy) düşer. Test, iki yöntemi karşılaştırır (tests/test_bess.py).
+    """
+    try:
+        import numpy as np
+        from scipy.optimize import milp, LinearConstraint, Bounds
+    except ImportError:
+        return plan_greedy(wind, price, p_mw, cap, rte, limit, wear, q)
+    n = len(wind)
+    ec = rte ** 0.5
+    cmax = [min(p_mw, max(w, 0.0)) for w in wind]
+    # değişkenler: c[0..n-1], d[0..n-1], z[0..n-1] (z=1: o saat şarj saati)
+    obj = np.concatenate([np.array(price, float), -(np.array(price, float) - wear), np.zeros(n)])
+    A, lo, hi = [], [], []
+    def row(c=None, d=None, z=None):
+        r = np.zeros(3 * n)
+        for k, (blk, v) in enumerate(((0, c), (n, d), (2 * n, z))):
+            if v is not None:
+                r[blk:blk + n] = v
+        return r
+    for h in range(n):
+        tri = np.array([1.0 if k <= h else 0.0 for k in range(n)])
+        A.append(row(c=ec * tri, d=-tri / ec)); lo.append(0.0); hi.append(cap)       # doluluk 0..cap
+        e = np.zeros(n); e[h] = 1.0
+        A.append(row(c=-e, d=e)); lo.append(-np.inf); hi.append(limit - wind[h])       # sayaç sınırı
+        A.append(row(c=e, z=-cmax[h] * e)); lo.append(-np.inf); hi.append(0.0)         # şarj ancak şarj saatinde
+        A.append(row(d=e, z=p_mw * e)); lo.append(-np.inf); hi.append(p_mw)           # deşarj ancak şarj saati değilse
+    A.append(row(c=np.full(n, ec))); lo.append(-np.inf); hi.append(cap)               # günde bir çevrim
+    A.append(row(c=np.full(n, ec), d=np.full(n, -1.0 / ec))); lo.append(0.0); hi.append(0.0)  # gün sonu boş
+    ub = np.concatenate([cmax, np.full(n, p_mw), np.ones(n)])
+    res = milp(obj, constraints=LinearConstraint(np.array(A), lo, hi), integrality=np.concatenate([np.zeros(2 * n), np.ones(n)]),
+               bounds=Bounds(np.zeros(3 * n), ub))
+    if res.status != 0 or res.x is None:
+        return plan_greedy(wind, price, p_mw, cap, rte, limit, wear, q)
+    c = [float(round(max(x, 0.0), 6)) for x in res.x[:n]]
+    d = [float(round(max(x, 0.0), 6)) for x in res.x[n:2 * n]]
+    if sum(c) * ec < 1e-4 or sum(d) < 1e-4:
+        return [0.0] * n, [0.0] * n
+    return c, d
+
+
+def plan_greedy(wind, price, p_mw=P_MW, cap=E_MWH * USABLE, rte=RTE, limit=LIMIT_MW, wear=WEAR, q=Q):
+    """Yedek yöntem. Açgözlü eşleştirme: her adımda q MWh'yi en çok kazandıran (şarj saati → sonraki deşarj saati) çiftine verir;
+    güç, rüzgâr, sayaç sınırı ve doluluk kısıtlarını korur.  Bazı dizilimlerde en iyi planı kaçırabilir (bkz. tests/test_bess.py).
     """
     n = len(wind)
     ec = rte ** 0.5
