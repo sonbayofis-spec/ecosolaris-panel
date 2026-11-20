@@ -79,30 +79,50 @@ def read_actual(path):
     return out, skipped
 
 
-def load_prices(date, price_dir, fetch=True):
-    path = os.path.join(price_dir, f"{date}.json")
-    if os.path.exists(path):
-        return json.load(open(path, encoding="utf-8"))
-    if not fetch:
-        return None
+def fetch_pzu(date):
+    """OPEM PZU sonucunu indirir: (fiyatlar MDL/MWh, hacimler MWh) ya da None. Saat sayısı 23–25 olabilir (saat dilimi günleri)."""
     try:
         req = urllib.request.Request(PZU.format(d=date), headers={"User-Agent": "ecosolaris-panel"})
         txt = urllib.request.urlopen(req, timeout=60).read().decode("utf-8-sig")
-        prices, on = [], False
+        prices, vols, on = [], [], False
         for r in csv.reader(io.StringIO(txt)):
             if r and r[0].strip() == "Interval":
                 on = True
                 continue
             if on and r and r[0].strip().isdigit():
                 prices.append(float(r[1].replace(",", "")))
+                try:
+                    vols.append(float(r[2].replace(",", "")))
+                except (IndexError, ValueError):
+                    vols.append(None)
         if len(prices) < 23:
             return None
-        os.makedirs(price_dir, exist_ok=True)
-        json.dump(prices, open(path, "w", encoding="utf-8"))
-        return prices
+        return prices, vols
     except Exception as e:
         print(f"PZU fiyatı alınamadı ({date}): {e}", file=sys.stderr)
         return None
+
+
+def save_volumes(date, vols, vol_dir):
+    if vol_dir and vols and all(v is not None for v in vols):
+        os.makedirs(vol_dir, exist_ok=True)
+        json.dump(vols, open(os.path.join(vol_dir, f"{date}.json"), "w", encoding="utf-8"))
+
+
+def load_prices(date, price_dir, fetch=True, vol_dir=None):
+    path = os.path.join(price_dir, f"{date}.json")
+    if os.path.exists(path):
+        return json.load(open(path, encoding="utf-8"))
+    if not fetch:
+        return None
+    got = fetch_pzu(date)
+    if not got:
+        return None
+    prices, vols = got
+    os.makedirs(price_dir, exist_ok=True)
+    json.dump(prices, open(path, "w", encoding="utf-8"))
+    save_volumes(date, vols, vol_dir)
+    return prices
 
 
 def stats(pairs):

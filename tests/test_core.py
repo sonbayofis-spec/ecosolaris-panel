@@ -246,6 +246,34 @@ class PriceFile(unittest.TestCase):
         self.assertIsNone(self.run_load([4000.0] * 10))
 
 
+class PriceRevision(unittest.TestCase):
+    def body(self, rows):
+        return ('Interval,"Pret [MDL/MWh]","Volum Total Tranzactionat [MWh]"\n'
+                + "".join(f'{i + 1},"{p:,.2f}",{0.5 + i / 100}\n' for i, p in enumerate(rows))).encode("utf-8")
+
+    def test_revision_is_detected_logged_and_volume_saved(self):
+        with tempfile.TemporaryDirectory() as d:
+            pd_, vd, rf = os.path.join(d, "p"), os.path.join(d, "v"), os.path.join(d, "rev.json")
+            os.makedirs(pd_)
+            json.dump([4000.0] * 24, open(os.path.join(pd_, "2026-11-19.json"), "w"))
+            new = [4000.0] * 23 + [4100.0]
+            with mock.patch.object(tk.urllib.request, "urlopen", return_value=io.BytesIO(self.body(new))):
+                self.assertTrue(prices.refresh_day("2026-11-19", pd_, vd, rf, "2026-11-20T09:20"))
+            self.assertEqual(json.load(open(os.path.join(pd_, "2026-11-19.json")))[-1], 4100.0)
+            log = json.load(open(rf))
+            self.assertEqual((log[0]["day"], log[0]["old"][-1], log[0]["new"][-1]), ("2026-11-19", 4000.0, 4100.0))
+            self.assertEqual(len(json.load(open(os.path.join(vd, "2026-11-19.json")))), 24)
+
+    def test_unchanged_price_is_not_a_revision(self):
+        with tempfile.TemporaryDirectory() as d:
+            pd_, vd, rf = os.path.join(d, "p"), os.path.join(d, "v"), os.path.join(d, "rev.json")
+            os.makedirs(pd_)
+            json.dump([4000.0] * 24, open(os.path.join(pd_, "2026-11-19.json"), "w"))
+            with mock.patch.object(tk.urllib.request, "urlopen", return_value=io.BytesIO(self.body([4000.0] * 24))):
+                self.assertFalse(prices.refresh_day("2026-11-19", pd_, vd, rf, "x"))
+            self.assertFalse(os.path.exists(rf))
+
+
 class PriceStamp(unittest.TestCase):
     P = [4000.0] * 24
 
