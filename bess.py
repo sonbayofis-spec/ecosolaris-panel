@@ -130,7 +130,7 @@ def plan_greedy(wind, price, p_mw=P_MW, cap=E_MWH * USABLE, rte=RTE, limit=LIMIT
     return c, d
 
 
-def day_plan(day, wind, price, src, spread):
+def day_plan(day, wind, price, src, spread, issued=None):
     net = [p - spread for p in price]
     c, d = plan(wind, net)
     grid = [wind[h] - c[h] + d[h] for h in range(len(wind))]
@@ -142,7 +142,7 @@ def day_plan(day, wind, price, src, spread):
     base = sum(w * p for w, p in zip(wind, net))
     total = sum(g * p for g, p in zip(grid, net))
     r3 = lambda a: [round(x, 3) for x in a]
-    return {"date": day, "price_src": src, "wind": r3(wind), "price": [round(p, 1) for p in net],
+    return {"date": day, "price_src": src, "forecast_issued": issued, "wind": r3(wind), "price": [round(p, 1) for p in net],
             "charge": r3(c), "discharge": r3(d), "grid": r3(grid), "soc": r3(soc),
             "base_mdl": round(base), "extra_mdl": round(total - base), "sold_mwh": round(sum(d), 2),
             "charged_mwh": round(sum(c), 2), "peak_mw": round(max(grid), 2)}
@@ -192,7 +192,7 @@ def main():
         if not w or not p:
             print(f"{day}: {'tahmin' if not w else 'fiyat'} yok, plan yapılmadı")
             continue
-        days[day] = day_plan(day, w, p, src, spread)
+        days[day] = day_plan(day, w, p, src, spread, (load_json(os.path.join(FC_DIR, f"{day}.json")) or {}).get("issued"))
         print(f"{day}: fiyat={src}, satılan {days[day]['sold_mwh']} MWh, ek gelir {days[day]['extra_mdl']} MDL")
     params = {"p_mw": P_MW, "e_mwh": E_MWH, "usable": USABLE, "rte": RTE, "limit_mw": LIMIT_MW,
               "spread_eur": SPREAD_EUR, "eur_mdl": round(rate, 4), "eur_src": rate_src, "spread_mdl": round(spread, 1)}
