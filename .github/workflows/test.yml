@@ -23,6 +23,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - name: Çözücüyü kur (BESS kesin planı)
+        run: pip install scipy
       - name: Python birim testleri
         run: python -W ignore::ResourceWarning -m unittest discover -s tests -v
       - name: Panel ile Python eşdeğerliği
