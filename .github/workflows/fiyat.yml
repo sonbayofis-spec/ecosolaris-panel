@@ -32,5 +32,5 @@ jobs:
           mkdir -p data
           git config user.name "ecosolaris-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A data/prices data/volumes data/price_revisions.json prices.json 2>/dev/null || true
+          for f in data/prices data/volumes data/price_revisions.json prices.json; do [ -e "$f" ] && git add -A "$f"; done; true
           git diff --staged --quiet || (git commit -m "OPEM fiyatları" && git pull --rebase && git push)
