@@ -579,8 +579,8 @@ table.besst tfoot td{font-weight:800;border-bottom:0}
     var k=STALE?"h_stale":m>=8?"h_strong":m>=6?"h_good":m>=4.5?"h_mid":"h_weak";
     $("h-title").textContent=t(k);
     $("h-text").innerHTML=t("h_text0",{v:fmt(m,1),e:fmt(eE,1),lo:fmt(r.min,1),hi:fmt(r.max,1),cf:fmt(eE/(2*(to-NOW))*100,0)})+(SHOWLEI?t("h_lei",{lei:fmt(lei(eE),0),llo:fmt(lei(r.min),0),lhi:fmt(lei(r.max),0)}):"");
-    var ag=agree(NOW,to);
-    $("h-chips").innerHTML='<span class="chip '+(pct>=110?"good":pct>=70?"":"mid")+'">'+chipNorm(L().month[parseT(T[NOW]).mo],pct)+'</span><span class="chip '+ag.c+'" title="'+ag.tip+'" tabindex="0">'+ag.t+'</span>'+(SHOWLEI?'<span class="chip">'+fmt(price,2)+' lei/kWh</span>':'');
+    var ag=agree(NOW,to),nc=pct>=110?"good":pct>=70?"":"mid"; // iki çip de aynı renk: normal güne göre fark belirler
+    $("h-chips").innerHTML='<span class="chip '+nc+'">'+chipNorm(L().month[parseT(T[NOW]).mo],pct)+'</span><span class="chip '+nc+'" title="'+ag.tip+'" tabindex="0">'+ag.t+'</span>'+(SHOWLEI?'<span class="chip">'+fmt(price,2)+' lei/kWh</span>':'');
     spin(e.kw[sel]>0?Math.min(14.9,9+Math.max(0,(e.rew[sel]||0)-4)*1.2):0);
   }
   // OPEM gün öncesi (PZU) saatlik fiyatıyla günün geliri: yalnızca referans, satış fiyatı girişi kullanıcıda kalır.
