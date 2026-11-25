@@ -7,6 +7,7 @@ Canlı: https://sonbayofis-spec.github.io/ecosolaris-panel/ · Depo: github.com/
 - Kullanıcı **Türkçe** konuşur. Panelde üç dil var (TR, EN, RO); metin ekleyince üçünü de ekle (`index.html` içindeki dil nesneleri).
 - **Onaysız yayınlama.** Değişikliği önce yan taraftaki fark penceresinde göster; kullanıcı "yayınla/push et" demeden push etme.
 - **Satış fiyatı manuel girişte kalır** (varsayılan 2,50 lei/kWh, tarayıcıda `eco_price2`). Otomatik OPEM fiyatına çevirme.
+- **Trader payı** (kullanıcı kararı 25.11.2026): OPEM fiyatından MWh başına 15 EUR düşülür (sözleşme Ek 4), yalnızca BESS'e değil **tüm OPEM referans gelirlerine** (panel referans satırı, Arşiv, Telegram). Tek kaynak `margin.py` (`SPREAD_EUR`, kur `bess.json`'dan); panelde kutu `bess-spread` (tarayıcıda `eco_spread`, varsayılan 15) bunu geçersiz kılar. Geçmiş günlere de güncel kurla uygulanır. Elle girilen satış fiyatı ve dengesizlik referansı (`ref_cost`) bundan etkilenmez.
 - Tasarımı bozma; kullanıcı arayüzden memnun, öncelik **verilerin doğruluğu**.
 
 ## Yapı

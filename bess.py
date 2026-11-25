@@ -29,8 +29,7 @@ E_MWH = 5.016       # batarya kapasitesi (CRRC CESS-L5016)
 USABLE = 0.90       # kullanılabilir pay (varsayım)
 RTE = 0.88          # gidiş-dönüş verimi (varsayım)
 LIMIT_MW = 3.96     # sayaçta şebekeye verilebilecek en yüksek güç
-SPREAD_EUR = 15.0   # sözleşme Ek 4
-EUR_MDL_FALLBACK = 20.0
+from margin import SPREAD_EUR, EUR_MDL_FALLBACK  # trader payı: tek kaynak margin.py
 WEAR = 0.0          # MDL / satılan MWh; batarya yıpranma payı (üretici verisi gelince)
 Q = 0.02            # hesap adımı, MWh
 BNM = "https://www.bnm.md/en/official_exchange_rates?get_xml=1&date={d}"

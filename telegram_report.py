@@ -21,6 +21,8 @@ import json, math, os, sys, time, urllib.error, urllib.parse, urllib.request
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
+from margin import spread_mdl
+
 URL = ("https://api.open-meteo.com/v1/forecast?latitude=46.8932&longitude=28.6946"
        "&hourly=wind_speed_10m,wind_speed_80m,wind_speed_100m,wind_speed_120m,wind_speed_180m,wind_direction_100m,temperature_2m"
        "&wind_speed_unit=ms&timezone=Europe%2FChisinau&forecast_days=3"
@@ -61,7 +63,7 @@ L = {
            "expected": "beklenen üretim", "conf": "Tahmin güvenilirliği", "levels": ["Yüksek", "Orta", "Düşük"],
            "times": "{m} ortalamasının {x} katı", "pct": "{m} ortalamasına göre %{p}", "gross": "brüt satış",
            "stop": "{n} saat rüzgâr yetersiz, üretim yok", "link": "Paneli aç",
-           "pr": "hava belirsizliği (P10–P90): {lo}–{hi} MWh · ortanca {mid}", "opem": "OPEM gün öncesi fiyatıyla: {lei} lei (ort. {p} lei/kWh, referans)", "dec": ","},
+           "pr": "hava belirsizliği (P10–P90): {lo}–{hi} MWh · ortanca {mid}", "opem": "OPEM − trader payıyla: {lei} lei (ort. {p} lei/kWh, referans)", "dec": ","},
     "en": {"mon": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
            "month": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
            "days": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
@@ -70,7 +72,7 @@ L = {
            "expected": "expected output", "conf": "Forecast confidence", "levels": ["High", "Medium", "Low"],
            "times": "{x}× a normal {m} day", "pct": "{p}% of a normal {m} day", "gross": "gross sales",
            "stop": "{n} h too calm to produce", "link": "Open panel",
-           "pr": "weather uncertainty (P10–P90): {lo}–{hi} MWh · median {mid}", "opem": "At OPEM day-ahead prices: {lei} lei (avg {p} lei/kWh, reference)", "dec": "."},
+           "pr": "weather uncertainty (P10–P90): {lo}–{hi} MWh · median {mid}", "opem": "At OPEM day-ahead prices less trader margin: {lei} lei (avg {p} lei/kWh, reference)", "dec": "."},
     "ro": {"mon": ["ian", "feb", "mar", "apr", "mai", "iun", "iul", "aug", "sep", "oct", "noi", "dec"],
            "month": ["ianuarie", "februarie", "martie", "aprilie", "mai", "iunie", "iulie", "august", "septembrie", "octombrie", "noiembrie", "decembrie"],
            "days": ["Lun", "Mar", "Mie", "Joi", "Vin", "Sâm", "Dum"],
@@ -79,7 +81,7 @@ L = {
            "expected": "producție estimată", "conf": "Încredere în prognoză", "levels": ["ridicată", "medie", "scăzută"],
            "times": "de {x} ori o zi normală de {m}", "pct": "{p}% dintr-o zi normală de {m}", "gross": "vânzări brute",
            "stop": "{n} ore fără vânt suficient", "link": "Deschide panoul",
-           "pr": "incertitudine meteo (P10–P90): {lo}–{hi} MWh · mediană {mid}", "opem": "La prețurile OPEM pentru ziua următoare: {lei} lei (medie {p} lei/kWh, referință)", "dec": ","},
+           "pr": "incertitudine meteo (P10–P90): {lo}–{hi} MWh · mediană {mid}", "opem": "La prețurile OPEM pentru ziua următoare, minus marja traderului: {lei} lei (medie {p} lei/kWh, referință)", "dec": ","},
 }
 
 A = {
@@ -312,7 +314,7 @@ def ensemble_quantiles(now):
 
 
 def opem_today(h, now):
-    """Günün üretimini OPEM PZU saatlik fiyatıyla değerlendirir (referans). prices.json depoda her gün güncellenir."""
+    """Günün üretimini OPEM PZU saatlik fiyatından trader payı düşerek değerlendirir (referans). prices.json depoda her gün güncellenir."""
     path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "prices.json")
     days = json.load(open(path, encoding="utf-8")).get("days", {})
     day = now.strftime("%Y-%m-%d")
@@ -324,7 +326,8 @@ def opem_today(h, now):
     if len(idx) != 24:
         return None
     _, kw = compute(h, MODELS["e"])
-    mdl = sum(kw[j] / 1000 * NET * pr[int(t[j][11:13])] for j in idx)
+    m = spread_mdl()  # trader payı OPEM'den düşülür (sözleşme Ek 4)
+    mdl = sum(kw[j] / 1000 * NET * (pr[int(t[j][11:13])] - m) for j in idx)
     e = sum(kw[j] for j in idx) / 1000 * NET
     return {"opem_lei": mdl, "opem_avg": mdl / (e * 1000) if e > 0 else None}
 
@@ -495,7 +498,7 @@ CARD = {
            "t2_l": "{d} TAHMİNİ BRÜT SATIŞ", "t2_s": "{e} MWh · tahmin, tahsilat değil",
            "chart_l": "ÖNÜMÜZDEKİ 24 SAAT · TÜRBİN GÜCÜ (kW)",
            "foot_stop": "{n} saat rüzgâr 3,5 m/s altında, üretim yok", "foot_ok": "24 saatin tamamında üretim bekleniyor",
-           "t1_s2": "hava belirsizliği P10–P90: {lo}–{hi} MWh", "t2_s2": "OPEM gün öncesi fiyatıyla: {lei} lei",
+           "t1_s2": "hava belirsizliği P10–P90: {lo}–{hi} MWh", "t2_s2": "OPEM − trader payıyla: {lei} lei",
            "foot2": "ECMWF · ICON · GFS (Open-Meteo), saha düzeltmeli 105 m · fiyat {p} lei/kWh"},
     "en": {"kicker": "WIND · HOURLY REPORT", "stamp": "Report · {h}", "site": "Pojăreni · Vestas V90-2.0 MW · hub 105 m",
            "now_l": "NOW · {h}", "now_s": "{kw} kW  ·  {cap}% of capacity  ·  {dir}",
@@ -503,7 +506,7 @@ CARD = {
            "t2_l": "{d} PROJECTED GROSS SALES", "t2_s": "{e} MWh · projection, not revenue",
            "chart_l": "NEXT 24 HOURS · TURBINE POWER (kW)",
            "foot_stop": "{n} h with wind below 3.5 m/s, no output", "foot_ok": "Output expected in every hour",
-           "t1_s2": "weather uncertainty P10–P90: {lo}–{hi} MWh", "t2_s2": "at OPEM day-ahead prices: {lei} lei",
+           "t1_s2": "weather uncertainty P10–P90: {lo}–{hi} MWh", "t2_s2": "at OPEM less trader margin: {lei} lei",
            "foot2": "ECMWF · ICON · GFS (Open-Meteo), site-corrected 105 m · price {p} lei/kWh"},
     "ro": {"kicker": "VÂNT · RAPORT ORAR", "stamp": "Raport · {h}", "site": "Pojăreni · Vestas V90-2.0 MW · butuc 105 m",
            "now_l": "ACUM · {h}", "now_s": "{kw} kW  ·  {cap}% din capacitate  ·  {dir}",
@@ -511,7 +514,7 @@ CARD = {
            "t2_l": "VÂNZĂRI BRUTE ESTIMATE, {d}", "t2_s": "{e} MWh · estimare, nu încasare",
            "chart_l": "URMĂTOARELE 24 DE ORE · PUTEREA TURBINEI (kW)",
            "foot_stop": "{n} ore cu vânt sub 3,5 m/s, fără producție", "foot_ok": "Producție estimată în fiecare oră",
-           "t1_s2": "incertitudine meteo P10–P90: {lo}–{hi} MWh", "t2_s2": "la prețurile OPEM: {lei} lei",
+           "t1_s2": "incertitudine meteo P10–P90: {lo}–{hi} MWh", "t2_s2": "la OPEM minus marja traderului: {lei} lei",
            "foot2": "ECMWF · ICON · GFS (Open-Meteo), corectat pentru amplasament, 105 m · preț {p} lei/kWh"},
 }
 
