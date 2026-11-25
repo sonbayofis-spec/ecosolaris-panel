@@ -61,7 +61,7 @@ L = {
            "dirs": ["kuzey", "kuzeydoğu", "doğu", "güneydoğu", "güney", "güneybatı", "batı", "kuzeybatı"],
            "now": "Şimdi", "of_cap": "kapasite %{p}", "next3": "Sonraki saatler", "h24": "Önümüzdeki 24 saat", "today": "Bugün", "dfull": ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"], "proj": "💰 <b>{d} için tahmini brüt satış</b>: ≈{lei} lei ({lo}–{hi}) · {e} MWh",
            "expected": "beklenen üretim", "conf": "Tahmin güvenilirliği", "levels": ["Yüksek", "Orta", "Düşük"],
-           "times": "{m} ortalamasının {x} katı", "pct": "{m} ortalamasına göre %{p}", "gross": "brüt satış",
+           "times": "{m} ortalamasının {x} katı", "pct": "{m} ortalamasına göre %{p}", "lo": "{m} ayı normal üretiminden %{d} az", "hi": "{m} ayı normal üretiminden %{d} fazla", "eq": "{m} ayı normal üretimi düzeyinde", "gross": "brüt satış",
            "stop": "{n} saat rüzgâr yetersiz, üretim yok", "link": "Paneli aç",
            "pr": "hava belirsizliği (P10–P90): {lo}–{hi} MWh · ortanca {mid}", "opem": "OPEM − trader payıyla: {lei} lei (ort. {p} lei/kWh, referans)", "dec": ","},
     "en": {"mon": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
@@ -70,7 +70,7 @@ L = {
            "dirs": ["north", "north-east", "east", "south-east", "south", "south-west", "west", "north-west"],
            "now": "Now", "of_cap": "{p}% of capacity", "next3": "Next hours", "h24": "Next 24 hours", "today": "Today", "dfull": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"], "proj": "💰 <b>Projected gross sales, {d}</b>: ≈{lei} lei ({lo}–{hi}) · {e} MWh",
            "expected": "expected output", "conf": "Forecast confidence", "levels": ["High", "Medium", "Low"],
-           "times": "{x}× a normal {m} day", "pct": "{p}% of a normal {m} day", "gross": "gross sales",
+           "times": "{x}× a normal {m} day", "pct": "{p}% of a normal {m} day", "lo": "{d}% below normal {m} output", "hi": "{d}% above normal {m} output", "eq": "in line with normal {m} output", "gross": "gross sales",
            "stop": "{n} h too calm to produce", "link": "Open panel",
            "pr": "weather uncertainty (P10–P90): {lo}–{hi} MWh · median {mid}", "opem": "At OPEM day-ahead prices less trader margin: {lei} lei (avg {p} lei/kWh, reference)", "dec": "."},
     "ro": {"mon": ["ian", "feb", "mar", "apr", "mai", "iun", "iul", "aug", "sep", "oct", "noi", "dec"],
@@ -79,7 +79,7 @@ L = {
            "dirs": ["nord", "nord-est", "est", "sud-est", "sud", "sud-vest", "vest", "nord-vest"],
            "now": "Acum", "of_cap": "{p}% din capacitate", "next3": "Orele următoare", "h24": "Următoarele 24 de ore", "today": "Azi", "dfull": ["luni", "marți", "miercuri", "joi", "vineri", "sâmbătă", "duminică"], "proj": "💰 <b>Vânzări brute estimate, {d}</b>: ≈{lei} lei ({lo}–{hi}) · {e} MWh",
            "expected": "producție estimată", "conf": "Încredere în prognoză", "levels": ["ridicată", "medie", "scăzută"],
-           "times": "de {x} ori o zi normală de {m}", "pct": "{p}% dintr-o zi normală de {m}", "gross": "vânzări brute",
+           "times": "de {x} ori o zi normală de {m}", "pct": "{p}% dintr-o zi normală de {m}", "lo": "cu {d}% sub producția normală din {m}", "hi": "cu {d}% peste producția normală din {m}", "eq": "la nivelul producției normale din {m}", "gross": "vânzări brute",
            "stop": "{n} ore fără vânt suficient", "link": "Deschide panoul",
            "pr": "incertitudine meteo (P10–P90): {lo}–{hi} MWh · mediană {mid}", "opem": "La prețurile OPEM pentru ziua următoare, minus marja traderului: {lei} lei (medie {p} lei/kWh, referință)", "dec": ","},
 }
@@ -313,6 +313,16 @@ def ensemble_quantiles(now):
     return {"p10": q(.1), "p50": q(.5), "p90": q(.9)}
 
 
+def rel_vs_normal(x, month, ratio, f):
+    """Normal güne göre farkı yönüyle yazar: '… normal üretiminden %60 az' (yüzde değil fark, karışmasın)."""
+    pct = ratio * 100
+    if pct < 97:
+        return x["lo"].format(m=month, d=f(100 - pct, 0))
+    if pct > 103:
+        return x["hi"].format(m=month, d=f(pct - 100, 0))
+    return x["eq"].format(m=month)
+
+
 def opem_today(h, now):
     """Günün üretimini OPEM PZU saatlik fiyatından trader payı düşerek değerlendirir (referans). prices.json depoda her gün güncellenir."""
     path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "prices.json")
@@ -462,7 +472,7 @@ def message(s, now, lang):
     cap = s["kw"] / 2000 * 100
     month = x["month"][now.month - 1]
     rel = (x["times"].format(m=month, x=f(s["ratio"], 1)) if s["ratio"] >= 1.15
-           else x["pct"].format(m=month, p=f(s["ratio"] * 100, 0)))
+           else rel_vs_normal(x, month, s["ratio"], f))
     conf_icon = ["🟢", "🟡", "🔴"][s["agree"]]
     rows = "\n".join(f"{hh}  {f(v):>5} m/s  {f(k, 0):>5} kW" for hh, v, k in s["next"])
     hash_ = "" if lang == "tr" else "#" + lang
@@ -525,7 +535,7 @@ def card_data(s, now, lang, price):
     r100 = lambda v: f(round(v / 100) * 100, 0)
     month = x["month"][now.month - 1]
     rel = (x["times"].format(m=month, x=f(s["ratio"], 1)) if s["ratio"] >= 1.15
-           else x["pct"].format(m=month, p=f(s["ratio"] * 100, 0)))
+           else rel_vs_normal(x, month, s["ratio"], f))
     return {
         "kicker": c["kicker"], "date": f"{now.day} {x['mon'][now.month - 1]} {now.year}", "stamp": c["stamp"].format(h=f"{now:%H:%M}"),
         "site": c["site"], "now_l": c["now_l"].format(h=f"{now:%H}:00"), "now_v": f"{f(s['hub'])} m/s",
