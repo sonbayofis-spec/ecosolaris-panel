@@ -8,12 +8,12 @@ CAP = bess.E_MWH * bess.USABLE
 
 
 class PlanTest(unittest.TestCase):
-    def check(self, wind, price):
-        c, d = bess.plan(wind, price)
+    def check(self, wind, price, p_mw=bess.P_MW):
+        c, d = bess.plan(wind, price, p_mw=p_mw)
         ec = bess.RTE ** 0.5
         s = 0.0
         for h in range(24):
-            self.assertLessEqual(c[h], min(bess.P_MW, wind[h]) + 1e-6, "şarj yalnızca türbinden")
+            self.assertLessEqual(c[h], min(p_mw, wind[h]) + 1e-6, "şarj yalnızca türbinden")
             self.assertLessEqual(wind[h] - c[h] + d[h], bess.LIMIT_MW + 1e-6, "sayaç sınırı")
             self.assertFalse(c[h] > 0 and d[h] > 0, "aynı saatte şarj ve deşarj")
             s += c[h] * ec - d[h] / ec
@@ -28,9 +28,10 @@ class PlanTest(unittest.TestCase):
         w = [1.5, 1.5, 1.5, 1.5, 1.0, 0.0] + [0.0] * 18
         p = [5000.0, 1000.0, 2000.0, 1000.0, 500.0, 5000.0] + [0.0] * 18
         val = lambda c, d: sum((y - x) * z for x, y, z in zip(c, d, p))
-        c, d = self.check(w, p)
+        # rapordaki hesap 2,5 MW ile yapılmış; planın güncel gücünden bağımsız sabit tutulur
+        c, d = self.check(w, p, p_mw=2.5)
         self.assertAlmostEqual(val(c, d), 11040, delta=5)
-        cg, dg = bess.plan_greedy(w, p)
+        cg, dg = bess.plan_greedy(w, p, p_mw=2.5)
         self.assertAlmostEqual(val(cg, dg), 10156, delta=5)
 
     def test_exact_never_worse_than_greedy_on_real_days(self):

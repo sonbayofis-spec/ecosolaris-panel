@@ -24,7 +24,7 @@ FC_DIR = os.path.join("data", "forecast")
 PRICE_DIR = os.path.join("data", "prices")
 OUT_DIR = os.path.join("data", "bess")
 
-P_MW = 2.5          # batarya gücü: CRRC CESS-L5016-EU-0.5C, 0,5C (5,016 MWh × 0,5); PCS toplamı 4 MW
+P_MW = 2.1          # kullanıcı kararı (25.11.2026): 2,1 MW sabit. CRRC nominal 2,5 MW (0,5C), ortak sistemde ölçülen tavan 2,05–2,16 MW; PCS sınırı CRRC'den gelince güncelle
 E_MWH = 5.016       # batarya kapasitesi (CRRC CESS-L5016)
 USABLE = 0.90       # kullanılabilir pay (varsayım)
 RTE = 0.88          # gidiş-dönüş verimi (varsayım)
